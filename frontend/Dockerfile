@@ -1,5 +1,5 @@
 FROM node:20-alpine AS build
-ARG VITE_API_URL
+ARG VITE_API_URL=https://mongez-api-production-1a85.up.railway.app/api
 ENV VITE_API_URL=$VITE_API_URL
 WORKDIR /app
 COPY frontend/package.json frontend/package-lock.json ./

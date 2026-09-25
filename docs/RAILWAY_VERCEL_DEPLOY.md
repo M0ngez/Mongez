@@ -11,7 +11,7 @@
 
 ```
 Vercel (Frontend)              Railway (Backend + DB)
-https://mongez.vercel.app       https://mongez.up.railway.app
+https://mongez.vercel.app       https://mongez-api-production-1a85.up.railway.app
       │                                   │
       └── VITE_API_URL ──────────────────▶│
                   (build time)            │
@@ -126,7 +126,7 @@ https://mongez.vercel.app       https://mongez.up.railway.app
 1. بعد ما الـ frontend يبقى على Vercel، خد الـ **URL** بتاعه (مثلاً `https://mongez.vercel.app`)
 2. روح للـ Railway backend service → Variables
 3. غيّر `FRONTEND_URL` = `https://mongez.vercel.app` (بدون slash في النهاية)
-4. حدّث إعدادات الـ Vercel `VITE_API_URL` = `https://mongez.up.railway.app/api`
+4. حدّث إعدادات الـ Vercel `VITE_API_URL` = `https://mongez-api-production-1a85.up.railway.app/api`
 5. أعد deploy الـ frontend (لو غيّرت الـ API_URL)
 
 ---
@@ -135,7 +135,7 @@ https://mongez.vercel.app       https://mongez.up.railway.app
 
 ### الـ Backend
 ```
-https://mongez.up.railway.app/api/health/
+https://mongez-api-production-1a85.up.railway.app/api/health/
 ```
 **متوقع:**
 ```json

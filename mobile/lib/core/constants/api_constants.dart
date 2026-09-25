@@ -5,7 +5,7 @@ class ApiConstants {
   /// Dev:        defaults to local LAN IP for physical-device testing.
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://mongez-api-production.up.railway.app/api/',
+    defaultValue: 'https://mongez-api-production-1a85.up.railway.app/api/',
   );
 
   static const Duration connectTimeout = Duration(seconds: 10);
