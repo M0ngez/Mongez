@@ -11,7 +11,7 @@
 
 ```
 Vercel (Frontend)              Railway (Backend + DB)
-https://mongez.vercel.app       https://mongez-api-production-1a85.up.railway.app
+https://mongez-psi.vercel.app       https://mongez-api-production-1a85.up.railway.app
       │                                   │
       └── VITE_API_URL ──────────────────▶│
                   (build time)            │
@@ -123,9 +123,9 @@ https://mongez.vercel.app       https://mongez-api-production-1a85.up.railway.ap
 
 ## الخطوة 3: الوصل بين الـ Frontend والـ Backend
 
-1. بعد ما الـ frontend يبقى على Vercel، خد الـ **URL** بتاعه (مثلاً `https://mongez.vercel.app`)
+1. بعد ما الـ frontend يبقى على Vercel، خد الـ **URL** بتاعه (مثلاً `https://mongez-psi.vercel.app`)
 2. روح للـ Railway backend service → Variables
-3. غيّر `FRONTEND_URL` = `https://mongez.vercel.app` (بدون slash في النهاية)
+3. غيّر `FRONTEND_URL` = `https://mongez-psi.vercel.app` (بدون slash في النهاية)
 4. حدّث إعدادات الـ Vercel `VITE_API_URL` = `https://mongez-api-production-1a85.up.railway.app/api`
 5. أعد deploy الـ frontend (لو غيّرت الـ API_URL)
 
@@ -143,7 +143,7 @@ https://mongez-api-production-1a85.up.railway.app/api/health/
 ```
 
 ### الـ Frontend
-افتح `https://mongez.vercel.app/` → لازم تشوف الـ Login.
+افتح `https://mongez-psi.vercel.app/` → لازم تشوف الـ Login.
 
 ### جرّب:
 - [ ] Login
