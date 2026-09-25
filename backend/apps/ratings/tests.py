@@ -77,6 +77,21 @@ class RatingTests(APITestCase):
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]["stars"], 4)
 
+    def test_worker_ratings_list_by_profile_id(self):
+        # The mobile worker home passes the WorkerProfile pk, which is a
+        # different sequence from the User pk — must still find the ratings.
+        self.assertNotEqual(self.profile.id, self.worker_user.id)
+        order = self._completed_order()
+        Rating.objects.create(
+            order=order, client=self.client_user, worker=self.worker_user, stars=5,
+        )
+        response = self.client.get(
+            reverse("rating-worker-list", args=[self.profile.id]),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["stars"], 5)
+
     def test_rating_create_fires_worker_notification(self):
         from apps.notifications.models import Notification
         order = self._completed_order()

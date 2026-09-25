@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -30,9 +31,13 @@ class WorkerRatingsListView(APIView):
     permission_classes = [AllowAny]
 
     def get(self, request, pk):
+        # Callers disagree on what "worker id" means: the profile screen
+        # passes the WorkerProfile pk (workers/<id>/ detail style) while the
+        # worker detail page passes the User pk. Accept both so real ratings
+        # never render as an empty list.
         ratings = (
             Rating.objects
-            .filter(worker_id=pk)
+            .filter(Q(worker_id=pk) | Q(worker__worker_profile=pk))
             .select_related("client", "order")
             .order_by("-created_at")[:50]
         )

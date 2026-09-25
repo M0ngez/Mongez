@@ -31,7 +31,7 @@ class RecentReviews extends StatelessWidget {
               const SizedBox(height: 8),
               for (final WorkerStatsReview r in reviews) ReviewTile(review: r),
               Align(
-                alignment: Alignment.center,
+                alignment: AlignmentDirectional.centerStart,
                 child: TextButton(
                   onPressed: () => Navigator.push(
                     context,

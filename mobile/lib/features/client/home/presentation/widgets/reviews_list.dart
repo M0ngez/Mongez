@@ -34,7 +34,21 @@ class ReviewsList extends StatelessWidget {
         ),
       );
     }
-    if (errorMessage != null || ratings.isEmpty) {
+    if (errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Text(
+            lang.errorOccurred,
+            textAlign: TextAlign.center,
+            style: tt.bodyMedium?.copyWith(
+              color: tt.bodySmall?.color?.withValues(alpha: 0.6),
+            ),
+          ),
+        ),
+      );
+    }
+    if (ratings.isEmpty) {
       return Padding(
         padding: const EdgeInsets.all(20),
         child: Center(

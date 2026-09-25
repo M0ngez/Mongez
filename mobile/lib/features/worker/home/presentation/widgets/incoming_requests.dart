@@ -107,7 +107,7 @@ class IncomingRequests extends StatelessWidget {
                 });
               return Column(
                 children: [
-                  for (final OrderModel order in orders)
+                  for (final OrderModel order in orders.take(3))
                     Padding(
                       padding: const EdgeInsets.only(bottom: 12),
                       child: OrderCard(

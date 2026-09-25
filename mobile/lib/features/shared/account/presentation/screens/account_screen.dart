@@ -12,6 +12,7 @@ import 'package:mongez/features/shared/profile/presentation/cubit/profile_cubit.
 import 'package:mongez/features/shared/profile/presentation/screens/edit_profile_screen.dart';
 import 'package:mongez/features/shared/settings/presentation/screens/settings_screen.dart';
 import 'package:mongez/features/worker/profile_setup/presentation/screens/add_service_screen.dart';
+import 'package:mongez/features/worker/home/presentation/screens/worker_reviews_screen.dart';
 import 'package:mongez/generated/l10n.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -95,6 +96,16 @@ class _AccountScreenState extends State<AccountScreen> {
                       rating: profile?.averageRating ?? 0,
                       jobs: profile?.completedJobs ?? 0,
                       label: lang.ratings,
+                      onTap: profile == null
+                          ? null
+                          : () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => WorkerReviewsScreen(
+                                    workerId: profile.id,
+                                  ),
+                                ),
+                              ),
                     ),
                     const SizedBox(height: 12),
                     AccountTile(
