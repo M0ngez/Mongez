@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mongez/features/shared/workers/data/models/worker_stats.dart';
 import 'package:mongez/features/worker/home/presentation/cubit/worker_stats_cubit.dart';
+import 'package:mongez/features/worker/home/presentation/screens/worker_reviews_screen.dart';
 import 'package:mongez/generated/l10n.dart';
 
 class RecentReviews extends StatelessWidget {
@@ -29,6 +30,20 @@ class RecentReviews extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               for (final WorkerStatsReview r in reviews) ReviewTile(review: r),
+              Align(
+                alignment: Alignment.center,
+                child: TextButton(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => WorkerReviewsScreen(
+                        workerId: state.stats.profileId,
+                      ),
+                    ),
+                  ),
+                  child: Text(lang.viewAll),
+                ),
+              ),
             ],
           ),
         );
