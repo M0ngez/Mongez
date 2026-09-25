@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
+import 'package:mongez/core/widgets/guest_empty_state.dart';
 import 'package:mongez/features/client/order/presentation/cubit/customer_orders_cubit.dart';
 import 'package:mongez/features/client/order/presentation/screens/order_details_screen.dart';
 import 'package:mongez/features/client/order/presentation/widgets/order_card.dart';
@@ -55,7 +58,16 @@ class _RequistesScreenState extends State<RequistesScreen> {
     final lang = S.of(context);
     return Scaffold(
       appBar: CustomAppBar(title: lang.myRequests, showBackButton: false),
-      body: BlocBuilder<CustomerOrdersCubit, CustomerOrdersState>(
+      body: GuestSession.isGuest
+          ? GuestEmptyState(
+              icon: Icons.inbox_rounded,
+              message: lang.signInToViewData,
+              onLogin: () => NavigationService.requireLogin(
+                context,
+                mainTabIndex: 2,
+              ),
+            )
+          : BlocBuilder<CustomerOrdersCubit, CustomerOrdersState>(
         builder: (context, state) {
           if (state is CustomerOrdersInitial || state is CustomerOrdersLoading) {
             return ListView.builder(

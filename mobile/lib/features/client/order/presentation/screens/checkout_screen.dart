@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/theme/app_colors.dart';
 import 'package:mongez/core/constants/endpoints.dart';
 import 'package:mongez/core/di/services_locator.dart';
@@ -45,6 +47,22 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     super.didChangeDependencies();
     if (!_initialized) {
       _initialized = true;
+      if (GuestSession.isGuest) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          NavigationService.requireLogin(
+            context,
+            message: S.of(context).checkoutLoginRequired,
+            onLoggedIn: () => NavigationService.navigatorKey.currentState
+                ?.push(
+              MaterialPageRoute(
+                builder: (_) => CheckoutScreen(worker: widget.worker),
+              ),
+            ),
+          );
+        });
+        return;
+      }
       _loadDefaults();
       _loadDefaultAddress();
     }

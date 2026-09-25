@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mongez/core/di/services_locator.dart';
 import 'package:mongez/core/locale/localization_cubit.dart';
 import 'package:mongez/core/network/api_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/theme/theme_cubit.dart';
 import 'package:mongez/generated/l10n.dart';
 
@@ -101,11 +102,15 @@ class SettingsScreen extends StatelessWidget {
 }
 
 void _syncLanguage(String langCode) {
+  if (GuestSession.isGuest) return;
   try {
     getIt.get<ApiService>().patch(
       endPoint: 'users/me/',
       body: {'language': langCode},
-    );
+    ).catchError((Object e) {
+      developer.log('Sync language failed: $e', name: 'Settings');
+      return <String, dynamic>{};
+    });
   } catch (e) {
     developer.log('Sync language failed: $e', name: 'Settings');
   }

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/client/favorites/presentation/cubit/favorites_cubit.dart';
+import 'package:mongez/generated/l10n.dart';
 
 class FavoriteButton extends StatefulWidget {
   final int workerId;
@@ -42,6 +45,17 @@ class _FavoriteButtonState extends State<FavoriteButton>
   }
 
   void _onToggle(FavoritesCubit cubit) {
+    if (GuestSession.isGuest) {
+      NavigationService.requireLogin(
+        context,
+        message: S.of(context).signInToViewData,
+        onLoggedIn: () {
+          if (!mounted) return;
+          cubit.toggleFavorite(widget.workerId);
+        },
+      );
+      return;
+    }
     _animController.forward().then((_) => _animController.reverse());
     cubit.toggleFavorite(widget.workerId);
   }

@@ -403,5 +403,11 @@
   "leaveWithoutCompleting": "Leave without completing?",
   "leaveWarningDesc": "Your account will be deleted if you leave without completing your profile.",
   "stay": "Stay",
-  "leave": "Leave"
+  "leave": "Leave",
+  "continueAsGuest": "Continue as guest",
+  "loginRequiredTitle": "Sign in required",
+  "loginRequiredMessage": "Please sign in to continue.",
+  "checkoutLoginRequired": "Sign in to complete your booking.",
+  "signInToViewProfile": "Sign in to view your profile.",
+  "signInToViewData": "Sign in to view your data."
 }

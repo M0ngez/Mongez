@@ -403,5 +403,11 @@
   "leaveWithoutCompleting": "تسيب من غير ما تكمل؟",
   "leaveWarningDesc": "حسابك هيتمسح لو مشيت من غير ما تكمل الملف الشخصي.",
   "stay": "أبقى",
-  "leave": "أمشي"
+  "leave": "أمشي",
+  "continueAsGuest": "المتابعة كزائر",
+  "loginRequiredTitle": "تسجيل الدخول مطلوب",
+  "loginRequiredMessage": "لازم تسجل دخول الأول عشان تكمل.",
+  "checkoutLoginRequired": "لازم تسجل دخول علشان تكمل الحجز.",
+  "signInToViewProfile": "سجل دخولك لعرض بروفايلك.",
+  "signInToViewData": "سجل دخولك لعرض بياناتك."
 }

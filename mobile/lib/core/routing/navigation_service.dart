@@ -21,11 +21,32 @@ import 'package:mongez/features/worker/home/presentation/cubit/worker_stats_cubi
 import 'package:mongez/features/client/home/presentation/cubit/workers_cubit.dart';
 import 'package:mongez/core/utils/pref_helper.dart';
 
+import 'package:mongez/core/session/guest_session.dart';
+import 'package:mongez/features/auth/models/tokens.dart';
+import 'package:mongez/features/auth/models/user.dart';
+import 'package:mongez/generated/l10n.dart';
+
 class NavigationService {
   /// Root navigator for navigation from non-widget contexts — FCM banner
   /// taps and background/terminated push opens route through this key.
   static final GlobalKey<NavigatorState> navigatorKey =
       GlobalKey<NavigatorState>();
+
+  /// Synthetic session handed to MainScreen while browsing as a guest.
+  /// Client role keeps the customer tabs; id -1 never matches real data.
+  static const Auth guestAuth = Auth(
+    message: 'guest',
+    user: User(
+      id: -1,
+      username: 'guest',
+      role: 'client',
+      profileCompleted: true,
+      verificationStatus: 'verified',
+    ),
+    tokens: Tokens(access: ''),
+    profileCompleted: true,
+    verificationStatus: 'verified',
+  );
 
   /// Opens the notifications screen (used as the fallback when a push tap
   /// carries no order id).
@@ -63,15 +84,94 @@ class NavigationService {
       },
     );
   }
-  static Future<void> toMainScreen(BuildContext context, Auth auth) async {
+  static Future<void> toMainScreen(
+    BuildContext context,
+    Auth auth, {
+    int initialIndex = 0,
+  }) async {
+    // A real session always ends guest mode (login from the guest flow).
+    GuestSession.exit();
     _clearImageCache();
     _resetAllCubits(context);
     _fetchFreshData(context);
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => MainScreen(auth: auth)),
+      MaterialPageRoute(
+        builder: (_) => MainScreen(auth: auth, initialIndex: initialIndex),
+      ),
       (route) => false,
+    );
+  }
+
+  /// Enters the app as a guest: no token, no persisted session — only the
+  /// in-memory GuestSession flag, so a cold start always shows Get Started
+  /// again. Only public data (workers, categories) is fetched.
+  static Future<void> toGuestMain(BuildContext context) async {
+    GuestSession.enter();
+    _clearImageCache();
+    _resetAllCubits(context);
+    context.read<WorkersCubit>().refresh();
+    context.read<CategoriesCubit>().fetchCategories();
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => const MainScreen(auth: guestAuth)),
+      (route) => false,
+    );
+  }
+
+  /// Gate for actions that require a real account (checkout, favorites,
+  /// personal screens…). Logged-in users run [onLoggedIn] immediately;
+  /// guests get a "sign in first" dialog whose Login button opens the
+  /// sign-in screen and replays [onLoggedIn] after a successful login.
+  ///
+  /// [mainTabIndex] is the MainScreen tab to land on after login so the
+  /// user returns to where they started (profile=3, favorites=1…).
+  static void requireLogin(
+    BuildContext context, {
+    String? message,
+    int mainTabIndex = 0,
+    VoidCallback? onLoggedIn,
+  }) {
+    if (!GuestSession.isGuest) {
+      onLoggedIn?.call();
+      return;
+    }
+
+    final lang = S.of(context);
+    final navigator = Navigator.of(context);
+    final authCubit = context.read<AuthCubit>();
+
+    showDialog<void>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        title: Text(lang.loginRequiredTitle),
+        content: Text(message ?? lang.loginRequiredMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: Text(lang.cancel),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(dialogCtx);
+              navigator.push(
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider.value(
+                    value: authCubit,
+                    child: GoogleSignInScreen(
+                      mainTabIndex: mainTabIndex,
+                      onLoggedIn: onLoggedIn,
+                    ),
+                  ),
+                ),
+              );
+            },
+            child: Text(lang.login),
+          ),
+        ],
+      ),
     );
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
 import 'package:mongez/features/client/order/presentation/screens/checkout_screen.dart';
 import 'package:mongez/features/client/home/presentation/screens/details_view.dart';
 import 'package:mongez/features/client/home/presentation/widgets/service_banner.dart';
@@ -186,11 +187,16 @@ class ServiceCard extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () {
                               if (isCustomer) {
-                                Navigator.push(
+                                NavigationService.requireLogin(
                                   context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        CheckoutScreen(worker: worker),
+                                  message: lang.checkoutLoginRequired,
+                                  onLoggedIn: () => NavigationService
+                                      .navigatorKey.currentState
+                                      ?.push(
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          CheckoutScreen(worker: worker),
+                                    ),
                                   ),
                                 );
                               } else {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/shared/account/presentation/screens/account_screen.dart';
 import 'package:mongez/features/client/favorites/presentation/screens/favorite_screen.dart';
 import 'package:mongez/features/client/home/presentation/screens/home_screen.dart';
@@ -14,14 +15,23 @@ import 'package:mongez/core/widgets/custom_nav_bar.dart';
 
 class MainScreen extends StatefulWidget {
   final Auth auth;
-  const MainScreen({super.key, required this.auth});
+
+  /// Tab to open on mount — the guest login redirect returns the user
+  /// to the tab they started from instead of always the home tab.
+  final int initialIndex;
+
+  const MainScreen({
+    super.key,
+    required this.auth,
+    this.initialIndex = 0,
+  });
 
   @override
   State<MainScreen> createState() => _MainScreenState();
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex = widget.initialIndex;
   NotificationCubit? _notifCubit;
 
   @override
@@ -29,6 +39,8 @@ class _MainScreenState extends State<MainScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      // Guests have no notifications — skip the 401-spamming poll.
+      if (GuestSession.isGuest) return;
       _notifCubit = context.read<NotificationCubit>();
       _notifCubit?.startPolling();
     });

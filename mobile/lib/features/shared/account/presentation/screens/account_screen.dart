@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mongez/core/di/services_locator.dart';
 import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/widgets/custom_app_bar.dart';
+import 'package:mongez/core/widgets/guest_empty_state.dart';
 import 'package:mongez/features/client/address/data/repositories/address_repository.dart';
 import 'package:mongez/features/client/address/presentation/screens/addresses_screen.dart';
 import 'package:mongez/features/shared/account/presentation/widgets/account_profile_card.dart';
@@ -69,6 +71,32 @@ class _AccountScreenState extends State<AccountScreen> {
                       defaultAddress.displayAddress.isNotEmpty
                   ? defaultAddress.displayAddress
                   : profileAddress;
+              if (GuestSession.isGuest) {
+                return ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [
+                    GuestEmptyState(
+                      icon: Icons.person_outline_rounded,
+                      message: lang.signInToViewProfile,
+                      onLogin: () => NavigationService.requireLogin(
+                        context,
+                        mainTabIndex: 3,
+                      ),
+                    ),
+                    AccountTile(
+                      icon: Icons.settings_outlined,
+                      title: lang.settings,
+                      subtitle: lang.settingsDesc,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }
               return ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                 children: [

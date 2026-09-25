@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/shared/notifications/data/models/notification_model.dart';
 import 'package:mongez/features/shared/notifications/domain/notification_repository.dart';
 
@@ -38,6 +39,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   /// live. The full list is fetched on demand when the notifications
   /// screen is opened.
   void startPolling() {
+    if (GuestSession.isGuest) return;
     _pollTimer?.cancel();
     // 5 s — dashboard moderation actions push notifications, and the
     // badge must reflect them almost instantly. A COUNT query is a few
@@ -52,6 +54,7 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   Future<void> _fetchCount() async {
+    if (GuestSession.isGuest) return;
     final result = await notificationRepository.getUnreadCount();
     result.fold((_) {}, (count) {
       if (count == _unreadCount) return;
@@ -81,6 +84,7 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   /// Full list reload — first page. Called when the screen opens.
   Future<void> refresh() async {
+    if (GuestSession.isGuest) return;
     _currentPage = 1;
     _hasMore = true;
     emit(NotificationLoading());

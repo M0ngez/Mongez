@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/client/favorites/data/models/favorite_model.dart';
 import 'package:mongez/features/client/favorites/domain/favorites_repository.dart';
 
@@ -48,6 +49,8 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   }
 
   Future<void> getFavorites() async {
+    // No session as a guest — the screen shows a sign-in CTA instead.
+    if (GuestSession.isGuest) return;
     emit(FavoritesLoading());
     await _refreshFavorites();
   }
@@ -71,6 +74,7 @@ class FavoritesCubit extends Cubit<FavoritesState> {
   }
 
   Future<void> toggleFavorite(int workerId) async {
+    if (GuestSession.isGuest) return;
     if (_togglingIds.contains(workerId)) return;
 
     // If we haven't loaded favorites yet (Initial/Loading/Failure), fetch first

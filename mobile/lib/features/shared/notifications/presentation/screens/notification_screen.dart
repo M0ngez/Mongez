@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
+import 'package:mongez/core/widgets/guest_empty_state.dart';
 import 'package:mongez/features/shared/notifications/data/models/notification_model.dart';
 import 'package:mongez/features/shared/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:mongez/features/client/order/domain/order_repository.dart';
@@ -70,7 +73,20 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
         ],
       ),
-      body: BlocBuilder<NotificationCubit, NotificationState>(
+      body: GuestSession.isGuest
+          ? GuestEmptyState(
+              icon: Icons.notifications_none_rounded,
+              message: lang.signInToViewData,
+              onLogin: () => NavigationService.requireLogin(
+                context,
+                mainTabIndex: 0,
+                onLoggedIn: () => NavigationService.navigatorKey.currentState
+                    ?.push(
+                  MaterialPageRoute(builder: (_) => const NotificationScreen()),
+                ),
+              ),
+            )
+          : BlocBuilder<NotificationCubit, NotificationState>(
         builder: (context, state) {
           if (state is NotificationInitial ||
               state is NotificationLoading ||

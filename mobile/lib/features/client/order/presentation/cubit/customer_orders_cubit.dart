@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/client/order/data/models/order_model.dart';
 import 'package:mongez/features/client/order/domain/order_repository.dart';
 
@@ -34,6 +35,7 @@ class CustomerOrdersCubit extends Cubit<CustomerOrdersState> {
 
   /// Full refresh (app start / pull-to-refresh).
   Future<void> getOrders() async {
+    if (GuestSession.isGuest) return;
     emit(CustomerOrdersLoading());
     await _refreshSilently();
   }
@@ -42,6 +44,7 @@ class CustomerOrdersCubit extends Cubit<CustomerOrdersState> {
   /// existing list so already-loaded pages survive. Cheaper than the old
   /// unbounded 5 s fetch.
   void startPolling() {
+    if (GuestSession.isGuest) return;
     _pollTimer?.cancel();
     _pollTimer = Timer.periodic(
       const Duration(seconds: 15),

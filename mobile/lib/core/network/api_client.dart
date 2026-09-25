@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:dio/dio.dart';
 import 'package:mongez/core/constants/api_constants.dart';
 import 'package:mongez/core/constants/endpoints.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/utils/pref_helper.dart';
 
 class DioClient {
@@ -29,6 +30,17 @@ class DioClient {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+          // Safety net: guests have no session, so authenticated calls are
+          // cancelled here instead of travelling to the backend for a 401.
+          // Screens gate these actions before they ever build a request.
+          if (GuestSession.isGuest && _requiresAuth(options.path)) {
+            return handler.reject(
+              DioException.requestCancelled(
+                requestOptions: options,
+                reason: 'guest session cannot call authenticated endpoints',
+              ),
+            );
+          }
           final token = await PrefHelper.getToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
@@ -58,6 +70,29 @@ class DioClient {
         },
       ),
     );
+  }
+
+  /// Path prefixes the backend guards with IsAuthenticated (see
+  /// backend/config/permissions.py). Everything else (workers list,
+  /// categories, worker details, public reviews…) stays open to guests.
+  static const List<String> _authPathPrefixes = [
+    'users/',
+    'favorites',
+    'orders/',
+    'notifications/',
+    'addresses/',
+    'ratings/',
+    'workers/me',
+  ];
+
+  static bool _requiresAuth(String rawPath) {
+    var path = rawPath;
+    final apiIdx = path.indexOf('/api/');
+    if (apiIdx >= 0) path = path.substring(apiIdx + '/api/'.length);
+    path = path.replaceFirst(RegExp(r'^/+'), '');
+    // Public, AllowAny reviews list — kept readable for guests.
+    if (path.startsWith('ratings/worker/')) return false;
+    return _authPathPrefixes.any(path.startsWith);
   }
 
   Future<bool> tryRefreshToken() async {

@@ -1,7 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/theme/app_colors.dart';
 import 'package:mongez/core/constants/endpoints.dart';
+import 'package:mongez/core/widgets/guest_empty_state.dart';
 import 'package:mongez/features/client/address/data/models/address_model.dart';
 import 'package:mongez/features/client/address/presentation/widgets/address_card.dart';
 import 'package:mongez/features/client/address/presentation/screens/add_address_screen.dart';
@@ -43,7 +46,7 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
   void initState() {
     super.initState();
     _selectedId = widget.initialSelectedId;
-    _fetchAddresses();
+    if (!GuestSession.isGuest) _fetchAddresses();
   }
 
   Future<void> _fetchAddresses() async {
@@ -133,7 +136,20 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAppBar(title: lang.addressesPageTitle),
-      body: CustomScrollView(
+      body: GuestSession.isGuest
+          ? GuestEmptyState(
+              icon: Icons.location_off_outlined,
+              message: lang.signInToViewData,
+              onLogin: () => NavigationService.requireLogin(
+                context,
+                mainTabIndex: 3,
+                onLoggedIn: () => NavigationService.navigatorKey.currentState
+                    ?.push(
+                  MaterialPageRoute(builder: (_) => const SavedAddressPage()),
+                ),
+              ),
+            )
+          : CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Padding(

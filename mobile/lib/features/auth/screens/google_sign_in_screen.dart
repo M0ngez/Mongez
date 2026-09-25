@@ -15,7 +15,21 @@ import 'package:mongez/core/widgets/logo.dart';
 import 'package:mongez/main.dart' show fcmService;
 
 class GoogleSignInScreen extends StatefulWidget {
-  const GoogleSignInScreen({super.key});
+  /// Tab of MainScreen to land on after login — lets the guest flow
+  /// return to the screen where the user tapped "sign in".
+  final int mainTabIndex;
+
+  /// Runs right after MainScreen is pushed on a successful login with a
+  /// completed profile (replay checkout, reopen a screen, toggle a
+  /// favorite…). Not run for the complete-profile / pending-verification
+  /// branches, which take over the flow.
+  final VoidCallback? onLoggedIn;
+
+  const GoogleSignInScreen({
+    super.key,
+    this.mainTabIndex = 0,
+    this.onLoggedIn,
+  });
 
   @override
   State<GoogleSignInScreen> createState() => _GoogleSignInScreenState();
@@ -43,7 +57,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
     final tt = theme.textTheme;
 
     return BlocConsumer<AuthCubit, AuthState>(
-      listener: (context, state) {
+      listener: (context, state) async {
         if (state is AuthAuthenticated) {
           fcmService.attachNotificationCubit(context.read<NotificationCubit>());
           fcmService.initAfterLogin(getIt.get<ApiService>());
@@ -66,7 +80,17 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
               (route) => false,
             );
           } else {
-            NavigationService.toMainScreen(context, state.auth);
+            await NavigationService.toMainScreen(
+              context,
+              state.auth,
+              initialIndex: widget.mainTabIndex,
+            );
+            final afterLogin = widget.onLoggedIn;
+            if (afterLogin != null && mounted) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                afterLogin();
+              });
+            }
           }
         } else if (state is AuthFailure) {
           ScaffoldMessenger.of(context).showSnackBar(

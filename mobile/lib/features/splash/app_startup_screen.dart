@@ -12,7 +12,7 @@ import 'package:mongez/features/auth/bloc/auth_cubit.dart';
 import 'package:mongez/features/auth/models/auth.dart';
 import 'package:mongez/features/auth/models/tokens.dart';
 import 'package:mongez/features/auth/models/user.dart';
-import 'package:mongez/features/auth/screens/google_sign_in_screen.dart';
+import 'package:mongez/features/auth/screens/get_started_screen.dart';
 import 'package:mongez/features/shared/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:mongez/features/shared/profile/data/models/profile_model.dart';
 import 'package:mongez/features/shared/profile/domain/profile_repository.dart';
@@ -170,7 +170,7 @@ class _AppStartupScreenState extends State<AppStartupScreen> {
       MaterialPageRoute(
         builder: (_) => BlocProvider.value(
           value: context.read<AuthCubit>(),
-          child: const GoogleSignInScreen(),
+          child: const GetStartedScreen(),
         ),
       ),
       (route) => false,

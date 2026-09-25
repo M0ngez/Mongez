@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
+import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/features/shared/profile/data/models/profile_model.dart';
 import 'package:mongez/features/shared/profile/domain/profile_repository.dart';
 
@@ -20,6 +21,8 @@ class ProfileCubit extends Cubit<ProfileState> {
   }
 
   Future<void> getProfile() async {
+    // Guests have no profile — never hit users/me/ (it would 401).
+    if (GuestSession.isGuest) return;
     emit(ProfileLoading());
     final result = await profileRepository.getProfile();
     result.fold(
@@ -33,6 +36,7 @@ class ProfileCubit extends Cubit<ProfileState> {
   /// change (e.g. admin uploaded a new avatar from the dashboard) is
   /// likely. Only swaps state if the fetched profile actually differs.
   Future<void> refreshSilently() async {
+    if (GuestSession.isGuest) return;
     final result = await profileRepository.getProfile();
     result.fold(
       (_) {/* swallow — keep current state on transient failures */},

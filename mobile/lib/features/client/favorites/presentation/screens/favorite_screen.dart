@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
+import 'package:mongez/core/session/guest_session.dart';
+import 'package:mongez/core/widgets/guest_empty_state.dart';
 import 'package:mongez/features/client/home/presentation/screens/details_view.dart';
 import 'package:mongez/features/client/favorites/presentation/cubit/favorites_cubit.dart';
 import 'package:mongez/features/client/home/presentation/widgets/service_card.dart';
@@ -18,7 +21,16 @@ class FavoiriteScreen extends StatelessWidget {
     return Scaffold(
       appBar: CustomAppBar(title: lang.favorites, showBackButton: false),
       backgroundColor: theme.scaffoldBackgroundColor,
-      body: BlocBuilder<FavoritesCubit, FavoritesState>(
+      body: GuestSession.isGuest
+          ? GuestEmptyState(
+              icon: Icons.favorite_border_rounded,
+              message: lang.signInToViewData,
+              onLogin: () => NavigationService.requireLogin(
+                context,
+                mainTabIndex: 1,
+              ),
+            )
+          : BlocBuilder<FavoritesCubit, FavoritesState>(
         builder: (context, state) {
           if (state is FavoritesLoading) {
             return ListView.builder(

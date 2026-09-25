@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:mongez/core/constants/endpoints.dart';
 import 'package:mongez/core/di/services_locator.dart';
 import 'package:mongez/core/network/api_service.dart';
+import 'package:mongez/core/routing/navigation_service.dart';
 import 'package:mongez/features/client/home/data/models/rating_model.dart';
 import 'package:mongez/features/client/home/presentation/widgets/book_cta.dart';
 import 'package:mongez/features/client/home/presentation/widgets/details_header.dart';
@@ -177,10 +178,15 @@ class _DetailsViewState extends State<DetailsView> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                 child: BookCTA(
                   onTap: () {
-                    Navigator.push(
+                    NavigationService.requireLogin(
                       context,
-                      MaterialPageRoute(
-                        builder: (_) => CheckoutScreen(worker: w),
+                      message: lang.checkoutLoginRequired,
+                      onLoggedIn: () => NavigationService
+                          .navigatorKey.currentState
+                          ?.push(
+                        MaterialPageRoute(
+                          builder: (_) => CheckoutScreen(worker: w),
+                        ),
                       ),
                     );
                   },
