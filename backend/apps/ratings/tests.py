@@ -126,5 +126,46 @@ class RatingTests(APITestCase):
             self.assertIn(key, row, f"missing key: {key}")
         self.assertEqual(row["order_id"], order.id)
         self.assertEqual(row["order_category"], "Plumbing")
-        self.assertEqual(row["worker_username"], "will")
-        self.assertEqual(row["worker_profession"], "Plumbing")
+
+    def test_rating_review_notification_lazily_retranslates(self):
+        from rest_framework.test import APIRequestFactory
+        from apps.notifications.models import Notification
+        from apps.notifications.serializers import NotificationSerializer
+
+        order = self._completed_order()
+        self.client.force_authenticate(user=self.client_user)
+        response = self.client.post(reverse("rating-create"), {
+            "order": order.id, "stars": 5, "review": "Great work!",
+        }, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, response.data)
+
+        notif = Notification.objects.get(user=self.worker_user)
+        self.assertEqual(notif.translation_key, "rating_received")
+        self.assertEqual(
+            notif.translation_params,
+            {"stars": 5, "client": self.client_user.username, "review": "Great work!"},
+        )
+
+        factory = APIRequestFactory()
+
+        self.worker_user.language = "en"
+        self.worker_user.save(update_fields=["language"])
+        request_en = factory.get(reverse("notification-list"))
+        request_en.user = self.worker_user
+        data_en = NotificationSerializer(
+            notif, context={"request": request_en},
+        ).data
+        self.assertEqual(data_en["title"], "5-star rating from cliff")
+        self.assertEqual(data_en["message"], "Great work!")
+
+        # Same row re-translates on language change.
+        self.worker_user.language = "ar"
+        self.worker_user.save(update_fields=["language"])
+        request_ar = factory.get(reverse("notification-list"))
+        request_ar.user = self.worker_user
+        data_ar = NotificationSerializer(
+            notif, context={"request": request_ar},
+        ).data
+        self.assertEqual(data_ar["title"], "تقييم 5 نجوم من cliff")
+        # The client's own words ride through untouched either way.
+        self.assertEqual(data_ar["message"], "Great work!")

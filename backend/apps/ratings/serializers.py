@@ -61,7 +61,6 @@ class RatingSerializer(serializers.ModelSerializer):
         try:
             from apps.notifications.services import notify
             from apps.notifications.models import Notification
-            from apps.notifications.translations import t
 
             stars = rating.stars
             client_label = client.name_ar or client.username
@@ -72,14 +71,20 @@ class RatingSerializer(serializers.ModelSerializer):
                 "stars": stars,
             }
             if rating.review:
-                # Free-text review written by the client is not catalog text —
-                # keep title/message direct (no lazy key). Title still uses the
-                # translated template; the message is the client's own words.
-                title, message = t(worker, "rating_received",
-                    stars=stars, client=client_label, review=rating.review)
+                # The catalog template fully covers both the translated title
+                # and the free-text review (inserted via the {review} placeholder
+                # as-is). Store key + params so the worker's language change
+                # re-translates the row lazily, like the default-rating branch.
                 notify(
-                    worker, title, message,
-                    notif_type=Notification.PUSH, data=data,
+                    worker,
+                    notif_type=Notification.PUSH,
+                    data=data,
+                    translation_key="rating_received",
+                    translation_params={
+                        "stars": stars,
+                        "client": client_label,
+                        "review": rating.review,
+                    },
                 )
             else:
                 # Catalog template only → store key + params so the worker's
