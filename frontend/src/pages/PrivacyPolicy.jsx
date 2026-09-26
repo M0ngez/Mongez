@@ -33,12 +33,6 @@ const SECTIONS = [
     bullets: ['privacy_push_b1', 'privacy_push_b2'],
   },
   {
-    icon: 'bi-credit-card',
-    titleKey: 'privacy_pay_title',
-    bodyKey: 'privacy_pay_body',
-    bullets: ['privacy_pay_b1', 'privacy_pay_b2'],
-  },
-  {
     icon: 'bi-bug',
     titleKey: 'privacy_crash_title',
     bodyKey: 'privacy_crash_body',
@@ -54,7 +48,7 @@ const SECTIONS = [
     icon: 'bi-diagram-3',
     titleKey: 'privacy_share_title',
     bodyKey: 'privacy_share_body',
-    bullets: ['privacy_share_b1', 'privacy_share_b2', 'privacy_share_b3', 'privacy_share_b4'],
+    bullets: ['privacy_share_b1', 'privacy_share_b2', 'privacy_share_b3'],
   },
   {
     icon: 'bi-clock-history',
