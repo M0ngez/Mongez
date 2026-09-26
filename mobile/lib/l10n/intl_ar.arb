@@ -409,5 +409,6 @@
   "loginRequiredMessage": "لازم تسجل دخول الأول عشان تكمل.",
   "checkoutLoginRequired": "لازم تسجل دخول علشان تكمل الحجز.",
   "signInToViewProfile": "سجل دخولك لعرض بروفايلك.",
-  "signInToViewData": "سجل دخولك لعرض بياناتك."
+  "signInToViewData": "سجل دخولك لعرض بياناتك.",
+  "privacyPolicy": "سياسة الخصوصية"
 }

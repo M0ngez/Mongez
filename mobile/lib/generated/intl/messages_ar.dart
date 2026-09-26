@@ -455,6 +455,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "تسريب في حوض المطبخ",
     ),
     "price": MessageLookupByLibrary.simpleMessage("السعر"),
+    "privacyPolicy": MessageLookupByLibrary.simpleMessage("سياسة الخصوصية"),
     "profileCreated": MessageLookupByLibrary.simpleMessage(
       "تم إنشاء الملف الشخصي",
     ),

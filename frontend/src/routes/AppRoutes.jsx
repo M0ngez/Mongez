@@ -7,6 +7,7 @@ import Layout from '../components/layout/Layout';
 import AdminLayout from '../components/admin/AdminLayout';
 
 const LandingPage = lazy(() => import('../pages/LandingPage'));
+const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy'));
 const LoginPage = lazy(() => import('../pages/Login'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
@@ -60,6 +61,7 @@ function AppRoutes() {
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<LandingPage />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
             </Route>
 
             <Route

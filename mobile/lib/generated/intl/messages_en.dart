@@ -468,6 +468,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Kitchen sink leaking",
     ),
     "price": MessageLookupByLibrary.simpleMessage("Price"),
+    "privacyPolicy": MessageLookupByLibrary.simpleMessage("Privacy Policy"),
     "profileCreated": MessageLookupByLibrary.simpleMessage("Profile Created"),
     "profileCreatedMessage": MessageLookupByLibrary.simpleMessage(
       "Your worker profile has been created successfully.",

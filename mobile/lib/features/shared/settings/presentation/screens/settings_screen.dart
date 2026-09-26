@@ -7,6 +7,7 @@ import 'package:mongez/core/network/api_service.dart';
 import 'package:mongez/core/session/guest_session.dart';
 import 'package:mongez/core/theme/theme_cubit.dart';
 import 'package:mongez/generated/l10n.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -92,6 +93,36 @@ class SettingsScreen extends StatelessWidget {
                     },
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: InkWell(
+                onTap: () => launchUrl(
+                  Uri.parse('https://mongez-psi.vercel.app/privacy'),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.privacy_tip_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        lang.privacyPolicy,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right),
+                  ],
+                ),
               ),
             ),
           ],

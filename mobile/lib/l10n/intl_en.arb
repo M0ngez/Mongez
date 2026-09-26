@@ -409,5 +409,6 @@
   "loginRequiredMessage": "Please sign in to continue.",
   "checkoutLoginRequired": "Sign in to complete your booking.",
   "signInToViewProfile": "Sign in to view your profile.",
-  "signInToViewData": "Sign in to view your data."
+  "signInToViewData": "Sign in to view your data.",
+  "privacyPolicy": "Privacy Policy"
 }
