@@ -830,6 +830,31 @@ class S {
     return Intl.message('No', name: 'no', desc: '', args: []);
   }
 
+  /// `Was this because the worker was late?`
+  String get workerDelayQuestion {
+    return Intl.message(
+      'Was this because the worker was late?',
+      name: 'workerDelayQuestion',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Yes, the worker was late`
+  String get workerWasLate {
+    return Intl.message(
+      'Yes, the worker was late',
+      name: 'workerWasLate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Another reason`
+  String get otherReason {
+    return Intl.message('Another reason', name: 'otherReason', desc: '', args: []);
+  }
+
   /// `Fixing power outage in living room`
   String get electricFixRequestDesc {
     return Intl.message(

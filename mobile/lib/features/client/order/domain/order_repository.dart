@@ -27,7 +27,7 @@ abstract class OrderRepository {
   });
   Future<Either<Failure, OrderModel>> acceptOrder(int id);
   Future<Either<Failure, OrderModel>> rejectOrder(int id);
-  Future<Either<Failure, void>> cancelOrder(int id);
+  Future<Either<Failure, void>> cancelOrder(int id, {String? reason});
   Future<Either<Failure, OrderModel>> markAsFinished(int id);
   Future<Either<Failure, OrderModel>> confirmCompletion(int id);
 }

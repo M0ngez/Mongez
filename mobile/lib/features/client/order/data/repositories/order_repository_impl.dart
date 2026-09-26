@@ -152,9 +152,12 @@ class OrderRepositoryImpl implements OrderRepository {
   }
 
   @override
-  Future<Either<Failure, void>> cancelOrder(int id) async {
+  Future<Either<Failure, void>> cancelOrder(int id, {String? reason}) async {
     try {
-      await apiService.post(endPoint: Endpoints.orderCancel(id));
+      await apiService.post(
+        endPoint: Endpoints.orderCancel(id),
+        body: {'reason': ?reason},
+      );
       return right(null);
     } catch (e) {
       if (e is DioException) {

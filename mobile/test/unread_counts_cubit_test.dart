@@ -376,7 +376,7 @@ class _FakeOrderRepository implements OrderRepository {
       throw UnimplementedError();
 
   @override
-  Future<Either<Failure, void>> cancelOrder(int id) async =>
+  Future<Either<Failure, void>> cancelOrder(int id, {String? reason}) async =>
       throw UnimplementedError();
 
   @override

@@ -409,6 +409,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "orderSuccess": MessageLookupByLibrary.simpleMessage(
       "تم إرسال طلبك بنجاح.",
     ),
+    "otherReason": MessageLookupByLibrary.simpleMessage("سبب تاني"),
     "password": MessageLookupByLibrary.simpleMessage("كلمة المرور"),
     "passwordTooShort": MessageLookupByLibrary.simpleMessage(
       "كلمة المرور قصيرة جدًا",
@@ -614,6 +615,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "لما عميل يحجز خدمتك هتظهر هنا.",
     ),
     "withinKm": m15,
+    "workerDelayQuestion": MessageLookupByLibrary.simpleMessage(
+      "هل كان السبب تأخر الفني؟",
+    ),
     "workerLateCancel": MessageLookupByLibrary.simpleMessage(
       "الفني اتأخر — تقدر تلغي دلوقتي",
     ),
@@ -624,6 +628,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "workerVerificationNotice": MessageLookupByLibrary.simpleMessage(
       "حسابك هيتراجع من المدير قبل ما تقدر تشتغل.",
     ),
+    "workerWasLate": MessageLookupByLibrary.simpleMessage("أيوه، الفني اتأخر"),
     "workingHours": MessageLookupByLibrary.simpleMessage("ساعات العمل"),
     "years": MessageLookupByLibrary.simpleMessage("سنوات"),
     "yearsOfExperience": MessageLookupByLibrary.simpleMessage("سنوات الخبرة"),

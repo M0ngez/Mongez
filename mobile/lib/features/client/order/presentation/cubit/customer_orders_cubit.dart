@@ -134,8 +134,8 @@ class CustomerOrdersCubit extends Cubit<CustomerOrdersState> {
     }
   }
 
-  Future<void> cancelOrder(int orderId) async {
-    final result = await orderRepository.cancelOrder(orderId);
+  Future<void> cancelOrder(int orderId, {String? reason}) async {
+    final result = await orderRepository.cancelOrder(orderId, reason: reason);
     if (result.isRight()) {
       await _refreshSilently();
     } else {

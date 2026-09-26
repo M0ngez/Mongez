@@ -424,6 +424,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "orderSuccess": MessageLookupByLibrary.simpleMessage(
       "Your order has been successfully placed.",
     ),
+    "otherReason": MessageLookupByLibrary.simpleMessage("Another reason"),
     "password": MessageLookupByLibrary.simpleMessage("Password"),
     "passwordTooShort": MessageLookupByLibrary.simpleMessage(
       "Password is too short",
@@ -635,6 +636,9 @@ class MessageLookup extends MessageLookupByLibrary {
       "When a client books your service it will land here.",
     ),
     "withinKm": m15,
+    "workerDelayQuestion": MessageLookupByLibrary.simpleMessage(
+      "Was this because the worker was late?",
+    ),
     "workerLateCancel": MessageLookupByLibrary.simpleMessage(
       "The worker is late — you can now cancel",
     ),
@@ -644,6 +648,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "workerRole": MessageLookupByLibrary.simpleMessage("Worker"),
     "workerVerificationNotice": MessageLookupByLibrary.simpleMessage(
       "Your account will be reviewed by an admin before you can start working.",
+    ),
+    "workerWasLate": MessageLookupByLibrary.simpleMessage(
+      "Yes, the worker was late",
     ),
     "workingHours": MessageLookupByLibrary.simpleMessage("Working hours"),
     "years": MessageLookupByLibrary.simpleMessage("years"),
