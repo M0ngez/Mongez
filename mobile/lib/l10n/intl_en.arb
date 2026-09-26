@@ -410,5 +410,17 @@
   "checkoutLoginRequired": "Sign in to complete your booking.",
   "signInToViewProfile": "Sign in to view your profile.",
   "signInToViewData": "Sign in to view your data.",
-  "privacyPolicy": "Privacy Policy"
+  "privacyPolicy": "Privacy Policy",
+  "unreadRequestsCount": "{count} unread requests",
+  "@unreadRequestsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "favoritesCount": "{count} favorites",
+  "@favoritesCount": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }

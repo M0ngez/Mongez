@@ -2824,6 +2824,26 @@ class S {
       args: [],
     );
   }
+
+  /// `{count} unread requests`
+  String unreadRequestsCount(Object count) {
+    return Intl.message(
+      '$count unread requests',
+      name: 'unreadRequestsCount',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `{count} favorites`
+  String favoritesCount(Object count) {
+    return Intl.message(
+      '$count favorites',
+      name: 'favoritesCount',
+      desc: '',
+      args: [count],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

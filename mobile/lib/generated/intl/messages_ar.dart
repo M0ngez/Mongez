@@ -52,6 +52,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m15(km) => "خلال ${km} كم";
 
+  static String m16(count) => "${count} طلب غير مقروء";
+
+  static String m17(count) => "${count} من المفضلة";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "acMaintenance": MessageLookupByLibrary.simpleMessage("صيانة التكييف"),
@@ -272,6 +276,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "failedToSave": MessageLookupByLibrary.simpleMessage("فشل الحفظ"),
     "fastAndReliable": MessageLookupByLibrary.simpleMessage("سريع وموثوق!"),
     "favorites": MessageLookupByLibrary.simpleMessage("المفضلة"),
+    "favoritesCount": m17,
     "filter": MessageLookupByLibrary.simpleMessage("تصفية"),
     "finishProfileSetup": MessageLookupByLibrary.simpleMessage(
       "كمّل إعداد ملفك الشخصي",
@@ -580,6 +585,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "unexpectedError": MessageLookupByLibrary.simpleMessage(
       "حدث خطأ غير متوقع",
     ),
+    "unreadRequestsCount": m16,
     "urgencyEmergency": MessageLookupByLibrary.simpleMessage("طوارئ"),
     "urgencyToday": MessageLookupByLibrary.simpleMessage("اليوم"),
     "urgencyWhenever": MessageLookupByLibrary.simpleMessage("في أي وقت"),

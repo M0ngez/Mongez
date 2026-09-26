@@ -12,6 +12,12 @@ class NotificationCubit extends Cubit<NotificationState> {
 
   List<NotificationModel>? _cached;
   Timer? _pollTimer;
+
+  /// Number of screens that asked for polling. Screens mount/unmount in
+  /// either order (new screen's initState runs before the old one's
+  /// dispose), so a plain cancel() in dispose could kill the timer a newer
+  /// screen just started — the last owner to leave actually stops it.
+  int _pollOwners = 0;
   int _unreadCount = 0;
   int _currentPage = 1;
   bool _hasMore = true;
@@ -27,7 +33,11 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   void reset() {
-    stopPolling();
+    // Force-stop regardless of outstanding owners: the session ended, so no
+    // screen may keep polling for the previous user.
+    _pollOwners = 0;
+    _pollTimer?.cancel();
+    _pollTimer = null;
     _cached = null;
     _unreadCount = 0;
     _currentPage = 1;
@@ -40,7 +50,12 @@ class NotificationCubit extends Cubit<NotificationState> {
   /// screen is opened.
   void startPolling() {
     if (GuestSession.isGuest) return;
-    _pollTimer?.cancel();
+    _pollOwners++;
+    if (_pollTimer != null) {
+      // Another screen already polls — just refresh for this one.
+      _fetchCount();
+      return;
+    }
     // 5 s — dashboard moderation actions push notifications, and the
     // badge must reflect them almost instantly. A COUNT query is a few
     // bytes, unlike the old full-list fetch every tick.
@@ -49,6 +64,8 @@ class NotificationCubit extends Cubit<NotificationState> {
   }
 
   void stopPolling() {
+    if (_pollOwners > 0) _pollOwners--;
+    if (_pollOwners > 0) return;
     _pollTimer?.cancel();
     _pollTimer = null;
   }

@@ -53,6 +53,10 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m15(km) => "within ${km} km";
 
+  static String m16(count) => "${count} unread requests";
+
+  static String m17(count) => "${count} favorites";
+
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
     "acMaintenance": MessageLookupByLibrary.simpleMessage("AC Maintenance"),
@@ -285,6 +289,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Fast and reliable!",
     ),
     "favorites": MessageLookupByLibrary.simpleMessage("Favorites"),
+    "favoritesCount": m17,
     "filter": MessageLookupByLibrary.simpleMessage("Filter"),
     "finishProfileSetup": MessageLookupByLibrary.simpleMessage(
       "Finish setting up your worker profile",
@@ -599,6 +604,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "unexpectedError": MessageLookupByLibrary.simpleMessage(
       "Unexpected error occurred",
     ),
+    "unreadRequestsCount": m16,
     "urgencyEmergency": MessageLookupByLibrary.simpleMessage("Emergency"),
     "urgencyToday": MessageLookupByLibrary.simpleMessage("Today"),
     "urgencyWhenever": MessageLookupByLibrary.simpleMessage("Whenever"),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:mongez/core/widgets/unread_badge.dart';
+
 class CustomNavBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -90,21 +92,36 @@ class _NavButton extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeOut,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 16, vertical: 6),
-                decoration: BoxDecoration(
-                  color: selected ? pillColor : Colors.transparent,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Image.asset(
-                  item.iconPath,
-                  width: 22,
-                  height: 22,
-                  color: selected ? selectedColor : unselectedColor,
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeOut,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: selected ? pillColor : Colors.transparent,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Image.asset(
+                      item.iconPath,
+                      width: 22,
+                      height: 22,
+                      color: selected ? selectedColor : unselectedColor,
+                    ),
+                  ),
+                  // Anchored to the pill's top-end so the dot reads as part
+                  // of the icon; `end` keeps it on the correct side in RTL.
+                  PositionedDirectional(
+                    top: -2,
+                    end: -4,
+                    child: UnreadBadge(
+                      count: item.badgeCount,
+                      semanticsLabel: item.badgeSemanticsLabel,
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -129,5 +146,16 @@ class NavItem {
   final String label;
   final String iconPath;
 
-  const NavItem({required this.label, required this.iconPath});
+  /// Unread count rendered as an overlay badge — 0 hides it.
+  final int badgeCount;
+
+  /// What screen readers announce instead of the bare number.
+  final String? badgeSemanticsLabel;
+
+  const NavItem({
+    required this.label,
+    required this.iconPath,
+    this.badgeCount = 0,
+    this.badgeSemanticsLabel,
+  });
 }

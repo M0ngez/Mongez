@@ -20,6 +20,7 @@ import 'package:mongez/features/shared/notifications/domain/notification_reposit
 import 'package:mongez/features/shared/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:mongez/features/shared/profile/domain/profile_repository.dart';
 import 'package:mongez/features/shared/profile/presentation/cubit/profile_cubit.dart';
+import 'package:mongez/features/shared/unread/presentation/cubit/unread_counts_cubit.dart';
 import 'package:mongez/features/shared/workers/domain/worker_repository.dart';
 import 'package:mongez/features/splash/app_startup_screen.dart';
 import 'package:mongez/features/worker/home/presentation/cubit/worker_stats_cubit.dart';
@@ -101,6 +102,16 @@ class MyApp extends StatelessWidget {
             BlocProvider(
               create: (context) => NotificationCubit(
                 notificationRepository: getIt.get<NotificationRepository>(),
+              ),
+            ),
+            // Bottom-nav unread badges: derives its numbers from the cubits
+            // registered above, so it adds no polling and no API call.
+            BlocProvider(
+              create: (context) => UnreadCountsCubit(
+                notificationCubit: context.read<NotificationCubit>(),
+                technicianOrdersCubit: context.read<TechnicianOrdersCubit>(),
+                profileCubit: context.read<ProfileCubit>(),
+                favoritesCubit: context.read<FavoritesCubit>(),
               ),
             ),
           ],

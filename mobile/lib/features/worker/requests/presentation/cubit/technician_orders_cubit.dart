@@ -11,6 +11,12 @@ class TechnicianOrdersCubit extends Cubit<TechnicianOrdersState> {
 
   List<OrderModel>? _cachedOrders;
   Timer? _pollTimer;
+
+  /// Screens mount/unmount in either order (a new screen's initState runs
+  /// before the old one's dispose), so only the last owner to leave stops
+  /// the shared timer — otherwise a tab switch would kill the poll the
+  /// newly opened screen just started (and freeze the nav badge with it).
+  int _pollOwners = 0;
   int _currentPage = 1;
   bool _hasMore = true;
   bool _fetching = false;
@@ -25,7 +31,10 @@ class TechnicianOrdersCubit extends Cubit<TechnicianOrdersState> {
   }
 
   void reset() {
-    stopPolling();
+    // Session ended — drop the timer and any outstanding owner.
+    _pollOwners = 0;
+    _pollTimer?.cancel();
+    _pollTimer = null;
     _cachedOrders = null;
     _currentPage = 1;
     _hasMore = true;
@@ -43,7 +52,12 @@ class TechnicianOrdersCubit extends Cubit<TechnicianOrdersState> {
   /// the dashboard) lands on the worker's screen without an unbounded
   /// fetch every tick.
   void startPolling() {
-    _pollTimer?.cancel();
+    _pollOwners++;
+    if (_pollTimer != null) {
+      // Another screen already polls — refresh immediately for this one.
+      _refreshSilently();
+      return;
+    }
     _pollTimer = Timer.periodic(
       const Duration(seconds: 15),
       (_) => _refreshSilently(),
@@ -52,6 +66,8 @@ class TechnicianOrdersCubit extends Cubit<TechnicianOrdersState> {
   }
 
   void stopPolling() {
+    if (_pollOwners > 0) _pollOwners--;
+    if (_pollOwners > 0) return;
     _pollTimer?.cancel();
     _pollTimer = null;
   }

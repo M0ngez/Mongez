@@ -7,6 +7,7 @@ import 'package:mongez/features/client/home/presentation/screens/home_screen.dar
 import 'package:mongez/features/worker/home/presentation/screens/worker_home_screen.dart';
 import 'package:mongez/features/auth/models/auth.dart';
 import 'package:mongez/features/shared/notifications/presentation/cubit/notification_cubit.dart';
+import 'package:mongez/features/shared/unread/presentation/cubit/unread_counts_cubit.dart';
 import 'package:mongez/features/client/order/presentation/screens/customer_requests_screen.dart';
 import 'package:mongez/features/worker/requests/presentation/screens/job_history_screen.dart';
 import 'package:mongez/features/worker/requests/presentation/screens/technician_requests_screen.dart';
@@ -43,6 +44,12 @@ class _MainScreenState extends State<MainScreen> {
       if (GuestSession.isGuest) return;
       _notifCubit = context.read<NotificationCubit>();
       _notifCubit?.startPolling();
+      // Bind the nav badges to this account's role and subscribe the cubit
+      // to the sources it derives its numbers from. Reset happens in
+      // NavigationService._resetAllCubits on logout/user switch.
+      context
+          .read<UnreadCountsCubit>()
+          .start(role: widget.auth.user!.role ?? 'client');
     });
   }
 
@@ -76,23 +83,36 @@ class _MainScreenState extends State<MainScreen> {
       body: isCustomer
           ? _screensCustomer[_currentIndex]
           : _screensTechnician[_currentIndex],
-      bottomNavigationBar: CustomNavBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
-        elements: [
-          NavItem(label: lang.home, iconPath: 'assets/images/home icon.png'),
-          NavItem(
-            label: isCustomer ? lang.favorites : lang.jobHistory,
-            iconPath: isCustomer
-                ? 'assets/images/saved icon.png'
-                : 'assets/images/Wallet-duotone.png',
-          ),
-          NavItem(
-            label: lang.requests,
-            iconPath: 'assets/images/shopping-cart.png',
-          ),
-          NavItem(label: lang.account, iconPath: 'assets/images/user icon.png'),
-        ],
+      bottomNavigationBar: BlocBuilder<UnreadCountsCubit, UnreadCountsState>(
+        builder: (context, unread) {
+          return CustomNavBar(
+            currentIndex: _currentIndex,
+            onTap: (index) => setState(() => _currentIndex = index),
+            elements: [
+              NavItem(
+                  label: lang.home, iconPath: 'assets/images/home icon.png'),
+              NavItem(
+                label: isCustomer ? lang.favorites : lang.jobHistory,
+                iconPath: isCustomer
+                    ? 'assets/images/saved icon.png'
+                    : 'assets/images/Wallet-duotone.png',
+                // Total saved favorites — the worker tab here is Job History,
+                // which has no favorites to count.
+                badgeCount: isCustomer ? unread.favorites : 0,
+                badgeSemanticsLabel: lang.favoritesCount(unread.favorites),
+              ),
+              NavItem(
+                label: lang.requests,
+                iconPath: 'assets/images/shopping-cart.png',
+                badgeCount: unread.requests,
+                badgeSemanticsLabel: lang.unreadRequestsCount(unread.requests),
+              ),
+              NavItem(
+                  label: lang.account,
+                  iconPath: 'assets/images/user icon.png'),
+            ],
+          );
+        },
       ),
     );
   }

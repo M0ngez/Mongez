@@ -410,5 +410,17 @@
   "checkoutLoginRequired": "لازم تسجل دخول علشان تكمل الحجز.",
   "signInToViewProfile": "سجل دخولك لعرض بروفايلك.",
   "signInToViewData": "سجل دخولك لعرض بياناتك.",
-  "privacyPolicy": "سياسة الخصوصية"
+  "privacyPolicy": "سياسة الخصوصية",
+  "unreadRequestsCount": "{count} طلب غير مقروء",
+  "@unreadRequestsCount": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "favoritesCount": "{count} من المفضلة",
+  "@favoritesCount": {
+    "placeholders": {
+      "count": {}
+    }
+  }
 }

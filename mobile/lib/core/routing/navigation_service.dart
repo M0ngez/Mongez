@@ -14,8 +14,10 @@ import 'package:mongez/features/client/order/presentation/cubit/checkout_cubit.d
 import 'package:mongez/features/client/order/presentation/cubit/customer_orders_cubit.dart';
 import 'package:mongez/features/worker/requests/presentation/cubit/job_history_cubit.dart';
 import 'package:mongez/features/worker/requests/presentation/cubit/technician_orders_cubit.dart';
+import 'package:mongez/features/shared/notifications/presentation/cubit/notification_cubit.dart';
 import 'package:mongez/features/shared/notifications/presentation/screens/notification_screen.dart';
 import 'package:mongez/features/shared/profile/presentation/cubit/profile_cubit.dart';
+import 'package:mongez/features/shared/unread/presentation/cubit/unread_counts_cubit.dart';
 import 'package:mongez/features/worker/profile_setup/presentation/cubit/create_worker_profile_cubit.dart';
 import 'package:mongez/features/worker/home/presentation/cubit/worker_stats_cubit.dart';
 import 'package:mongez/features/client/home/presentation/cubit/workers_cubit.dart';
@@ -217,6 +219,10 @@ class NavigationService {
     context.read<CheckoutCubit>().reset();
     context.read<CreateWorkerProfileCubit>().reset();
     context.read<WorkerStatsCubit>().reset();
+    // Notification polling stops with the session and the nav badges drop
+    // to zero, so the next account never inherits them.
+    context.read<NotificationCubit>().reset();
+    context.read<UnreadCountsCubit>().reset();
   }
 
   static void _fetchFreshData(BuildContext context) {
