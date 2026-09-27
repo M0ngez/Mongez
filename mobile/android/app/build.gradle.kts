@@ -8,7 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.mongez"
+    namespace = "com.mongez.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = "28.2.13676358"
 
@@ -25,7 +25,7 @@ android {
     defaultConfig {
         applicationId = "com.mongez.app"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = 36
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -47,8 +47,16 @@ android {
     buildTypes {
         release {
             signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = false
-            isShrinkResources = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            // Without this R8 runs with no rules at all and proguard-rules.pro
+            // is never read, so the Play Core keep/dontwarn entries below are
+            // dead config. Firebase and flutter_local_notifications lean on
+            // reflection and get stripped without the keeps in that file.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

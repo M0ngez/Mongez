@@ -4,4 +4,9 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Debug-only: lets the app talk to a dev server over plain HTTP on the
+         LAN (flutter run / hot reload against a local backend). The release
+         manifest has no cleartext exemption. Every backend URL is HTTPS, and
+         shipping the flag would fail Play's targetSdk policy review. -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>
