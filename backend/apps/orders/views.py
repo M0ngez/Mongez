@@ -52,29 +52,54 @@ def send_notification(
     )
 
 
-def authorize_commission(order):
-    amount = settings.COMMISSION_AMOUNT
+def _record_failed_commission(order):
+    """Note that this order was never charged — best effort only.
 
+    Recording the failure is bookkeeping, not the job itself. If the row can't
+    be written (DB blip, or a retry tripping the one-to-one constraint) the
+    client still has to get their order, so we swallow it and say so loudly.
+    """
+    try:
+        CommissionPayment.objects.create(
+            order=order,
+            amount=settings.COMMISSION_AMOUNT,
+            payment_status=CommissionPayment.FAILED,
+        )
+    except Exception:
+        logger.error(
+            f"Order #{order.id}: could not record the failed commission either.",
+            exc_info=True,
+        )
+
+
+def authorize_commission(order):
+    """Place the platform's card hold for this order, if Paymob answers.
+
+    Nothing here may reach the caller: Paymob is a third party on the network,
+    so a blip on their side must not cost the client their order. On failure we
+    log, still record a FAILED commission so the gap is visible in the books,
+    and return None so the client gets a 201 with no payment key, not a 500.
+    """
     try:
         paymob_order_id, payment_key = paymob.authorize_commission(order)
         CommissionPayment.objects.create(
             order=order,
-            amount=amount,
+            amount=settings.COMMISSION_AMOUNT,
             paymob_order_id=paymob_order_id,
             payment_key=payment_key,
             payment_status=CommissionPayment.AUTHORIZED,
         )
-        logger.info(f"Commission AUTHORIZED — Order #{order.id}")
-        return payment_key
-
-    except Exception as e:
-        logger.error(f"Paymob authorization FAILED for Order #{order.id}: {e}")
-        CommissionPayment.objects.create(
-            order=order,
-            amount=amount,
-            payment_status=CommissionPayment.FAILED,
+    except Exception:
+        logger.warning(
+            f"Order #{order.id} created but commission authorization failed "
+            f"(Paymob unavailable/misconfigured).",
+            exc_info=True,
         )
+        _record_failed_commission(order)
         return None
+
+    logger.info(f"Commission AUTHORIZED — Order #{order.id}")
+    return payment_key
 
 _AUDIO_EXTS = {"mp3", "m4a", "aac", "wav", "ogg", "opus", "amr"}
 _VIDEO_EXTS = {"mp4", "mov", "3gp", "webm", "mkv"}

@@ -1,13 +1,16 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest.mock import patch
 
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.notifications.models import Notification
+from apps.payments.models import CommissionPayment
 from apps.users.models import Address, User
 from apps.workers.models import ServiceCategory, WorkerProfile
 from .models import Order, OrderAttachment
@@ -345,3 +348,93 @@ class OrderAttachmentLimitTests(APITestCase):
             order.attachments.filter(kind=OrderAttachment.KIND_IMAGE).count(),
             4,
         )
+
+
+class CommissionAuthorizationFailureTests(APITestCase):
+    """Paymob is a third party on the network, so authorizing a commission is
+    the one step of order creation that can fail for reasons that have nothing
+    to do with the order. A client who told us to book a plumber must end up
+    with a booked plumber whether Paymob answered or not.
+
+    Every test here breaks the Paymob call itself rather than our own wrapper,
+    so the real failure handling is what gets exercised.
+    """
+
+    PAYMOB_DOWN = Exception("Paymob returned 503")
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = ServiceCategory.objects.create(name="Plumbing")
+        cls.client_user = User.objects.create_user(
+            username="paymob_client", phone="+201000000040", password="Sup3r-Secret!",
+            role=User.Role.CLIENT, profile_completed=True,
+        )
+        cls.address = Address.objects.create(
+            user=cls.client_user, label="Home",
+            address="12 Test St", governorate="cairo", city="Nasr City",
+        )
+
+    def _create_order(self):
+        self.client.force_authenticate(user=self.client_user)
+        return self.client.post(reverse("order-list-create"), {
+            "service_category": self.category.id,
+            "address_id": self.address.id,
+        }, format="json")
+
+    def test_paymob_outage_still_creates_the_order(self):
+        # Breaks if the except branch is dropped, or if the failing call is
+        # allowed to escape and roll the order back with it.
+        with patch("apps.payments.paymob.authorize_commission", side_effect=self.PAYMOB_DOWN):
+            resp = self._create_order()
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(resp.data["status"], Order.PENDING)
+        self.assertIsNone(resp.data["payment_key"], "no payment key was issued")
+        self.assertEqual(Order.objects.count(), 1)
+
+    def test_paymob_outage_is_recorded_as_a_failed_commission(self):
+        # Breaks if the FAILED row stops being written, leaving no trace that
+        # this order was never charged.
+        with patch("apps.payments.paymob.authorize_commission", side_effect=self.PAYMOB_DOWN):
+            self._create_order()
+
+        order = Order.objects.get()
+        self.assertEqual(
+            order.commission_payment.payment_status, CommissionPayment.FAILED,
+        )
+
+    def test_order_lands_even_when_the_failure_cannot_be_recorded(self):
+        # Not just the Paymob call — recording our own failure can fail too
+        # (DB blip, or a retry tripping the one-to-one constraint). The order
+        # outranks the audit row: a client with a real order beats tidy books.
+        with patch("apps.payments.paymob.authorize_commission", side_effect=self.PAYMOB_DOWN), \
+                patch.object(
+                    CommissionPayment.objects, "create",
+                    side_effect=Exception("could not write the commission row"),
+                ):
+            resp = self._create_order()
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertIsNone(resp.data["payment_key"])
+        self.assertEqual(Order.objects.count(), 1)
+
+    def test_successful_authorization_is_recorded_in_full(self):
+        # Breaks if any field of the AUTHORIZED row stops being written. Note
+        # the wrapper swallows its own errors, so a dropped field fails silently
+        # as a FAILED commission rather than a loud crash — the order still goes
+        # out, just never charged.
+        with override_settings(COMMISSION_AMOUNT=35), \
+                patch(
+                    "apps.payments.paymob.authorize_commission",
+                    return_value=("PB_ORDER_123", "pk_abc"),
+                ):
+            resp = self._create_order()
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED, resp.data)
+        self.assertEqual(resp.data["payment_key"], "pk_abc")
+
+        payment = Order.objects.get().commission_payment
+        self.assertEqual(payment.payment_status, CommissionPayment.AUTHORIZED)
+        self.assertEqual(payment.paymob_order_id, "PB_ORDER_123")
+        self.assertEqual(payment.payment_key, "pk_abc")
+        self.assertEqual(payment.amount, Decimal("35"))
