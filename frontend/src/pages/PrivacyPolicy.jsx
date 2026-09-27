@@ -27,6 +27,12 @@ const SECTIONS = [
     bullets: ['privacy_media_b1', 'privacy_media_b2', 'privacy_media_b3'],
   },
   {
+    icon: 'bi-credit-card',
+    titleKey: 'privacy_id_title',
+    bodyKey: 'privacy_id_body',
+    bullets: ['privacy_id_b1', 'privacy_id_b2'],
+  },
+  {
     icon: 'bi-bell',
     titleKey: 'privacy_push_title',
     bodyKey: 'privacy_push_body',
