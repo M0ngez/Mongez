@@ -2905,6 +2905,16 @@ class S {
     );
   }
 
+  /// `Your account has been deleted and you've been signed out.`
+  String get deleteAccountDone {
+    return Intl.message(
+      'Your account has been deleted and you\'ve been signed out.',
+      name: 'deleteAccountDone',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `{count} unread requests`
   String unreadRequestsCount(Object count) {
     return Intl.message(

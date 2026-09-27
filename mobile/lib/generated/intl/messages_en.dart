@@ -251,6 +251,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
     "deleteAccount": MessageLookupByLibrary.simpleMessage("Delete my account"),
     "deleteAccountActiveOrders": m5,
+    "deleteAccountDone": MessageLookupByLibrary.simpleMessage(
+      "Your account has been deleted and you\'ve been signed out.",
+    ),
     "deleteAccountFailed": MessageLookupByLibrary.simpleMessage(
       "We could not open the deletion page. Please try again.",
     ),

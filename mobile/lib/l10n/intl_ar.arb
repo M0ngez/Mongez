@@ -424,6 +424,7 @@
     }
   },
   "deleteAccountFailed": "ما قدرناش نفتح صفحة الحذف. جرّب تاني.",
+  "deleteAccountDone": "تم حذف حسابك وتم تسجيل خروجك.",
   "unreadRequestsCount": "{count} طلب غير مقروء",
   "@unreadRequestsCount": {
     "placeholders": {

@@ -424,6 +424,7 @@
     }
   },
   "deleteAccountFailed": "We could not open the deletion page. Please try again.",
+  "deleteAccountDone": "Your account has been deleted and you've been signed out.",
   "unreadRequestsCount": "{count} unread requests",
   "@unreadRequestsCount": {
     "placeholders": {

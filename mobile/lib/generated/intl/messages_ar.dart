@@ -242,6 +242,9 @@ class MessageLookup extends MessageLookupByLibrary {
     "delete": MessageLookupByLibrary.simpleMessage("حذف"),
     "deleteAccount": MessageLookupByLibrary.simpleMessage("احذف حسابي"),
     "deleteAccountActiveOrders": m5,
+    "deleteAccountDone": MessageLookupByLibrary.simpleMessage(
+      "تم حذف حسابك وتم تسجيل خروجك.",
+    ),
     "deleteAccountFailed": MessageLookupByLibrary.simpleMessage(
       "ما قدرناش نفتح صفحة الحذف. جرّب تاني.",
     ),
