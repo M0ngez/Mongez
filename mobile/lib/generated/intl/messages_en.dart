@@ -151,6 +151,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Camera not supported on this platform",
     ),
     "cameraOption": MessageLookupByLibrary.simpleMessage("Camera"),
+    "cameraPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "Mongez needs camera access so you can photograph the issue and attach it to your order.",
+    ),
+    "cameraPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "Camera access",
+    ),
     "cancel": MessageLookupByLibrary.simpleMessage("Cancel"),
     "cancelIn": m1,
     "cancelRequest": MessageLookupByLibrary.simpleMessage("Cancel Request"),
@@ -222,6 +228,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "continueAsGuest": MessageLookupByLibrary.simpleMessage(
       "Continue as guest",
     ),
+    "continueLabel": MessageLookupByLibrary.simpleMessage("Continue"),
     "copiedToClipboard": m3,
     "couldNotLoadRequests": MessageLookupByLibrary.simpleMessage(
       "Could not load requests",
@@ -320,6 +327,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "Gallery not supported on this platform",
     ),
     "galleryOption": MessageLookupByLibrary.simpleMessage("Gallery"),
+    "galleryPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "Mongez needs access to your photos so you can attach images to your order.",
+    ),
+    "galleryPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "Photos access",
+    ),
     "getStartedButton": MessageLookupByLibrary.simpleMessage("Get Started"),
     "getStartedDescription": MessageLookupByLibrary.simpleMessage(
       "Got a problem at home?\nRequest a trusted technician in minutes with ease.\n\n✓ Trusted technician selections\n✓ Step-by-step order tracking\n✓ Simple and easy-to-use experience",
@@ -392,8 +405,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxPhotosReached": MessageLookupByLibrary.simpleMessage(
       "Maximum of 4 photos reached",
     ),
+    "micPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "Mongez needs microphone access so you can record a voice note describing the issue.",
+    ),
     "micPermissionDenied": MessageLookupByLibrary.simpleMessage(
       "Microphone permission denied",
+    ),
+    "micPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "Microphone access",
     ),
     "micPermissionUnavailable": MessageLookupByLibrary.simpleMessage(
       "Microphone permission unavailable",

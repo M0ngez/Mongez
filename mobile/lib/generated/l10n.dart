@@ -2260,6 +2260,71 @@ class S {
     );
   }
 
+  /// `Continue`
+  String get continueLabel {
+    return Intl.message('Continue', name: 'continueLabel', desc: '', args: []);
+  }
+
+  /// `Camera access`
+  String get cameraPermissionTitle {
+    return Intl.message(
+      'Camera access',
+      name: 'cameraPermissionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mongez needs camera access so you can photograph the issue and attach it to your order.`
+  String get cameraPermissionBody {
+    return Intl.message(
+      'Mongez needs camera access so you can photograph the issue and attach it to your order.',
+      name: 'cameraPermissionBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Photos access`
+  String get galleryPermissionTitle {
+    return Intl.message(
+      'Photos access',
+      name: 'galleryPermissionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mongez needs access to your photos so you can attach images to your order.`
+  String get galleryPermissionBody {
+    return Intl.message(
+      'Mongez needs access to your photos so you can attach images to your order.',
+      name: 'galleryPermissionBody',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Microphone access`
+  String get micPermissionTitle {
+    return Intl.message(
+      'Microphone access',
+      name: 'micPermissionTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Mongez needs microphone access so you can record a voice note describing the issue.`
+  String get micPermissionBody {
+    return Intl.message(
+      'Mongez needs microphone access so you can record a voice note describing the issue.',
+      name: 'micPermissionBody',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `Camera`
   String get cameraOption {
     return Intl.message('Camera', name: 'cameraOption', desc: '', args: []);

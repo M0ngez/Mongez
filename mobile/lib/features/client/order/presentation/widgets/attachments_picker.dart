@@ -50,6 +50,64 @@ class _AttachmentsPickerState extends State<AttachmentsPicker> {
   Timer? _recordTimer;
   int _recordSeconds = 0;
 
+  /// Permission rationales already shown this session, keyed by feature so a
+  /// granted permission is never re-explained and a denied one is only
+  /// explained once.
+  final Set<String> _rationaleShown = {};
+
+  /// Explains why an OS permission is about to be requested. Returns false
+  /// when the user backs out, so the caller skips the real request.
+  Future<bool> _confirmRationale({required String title, required String body}) async {
+    if (!mounted) return false;
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(title),
+        content: Text(body),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(S.of(dialogContext).cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(S.of(dialogContext).continueLabel),
+          ),
+        ],
+      ),
+    );
+    if (!mounted) return false;
+    return result ?? false;
+  }
+
+  Future<bool> _alreadyGranted(List<Permission> permissions) async {
+    for (final permission in permissions) {
+      try {
+        final status = await permission.status;
+        if (status.isGranted || status.isLimited) return true;
+      } catch (_) {
+        // No native implementation on this platform — treat as not granted.
+      }
+    }
+    return false;
+  }
+
+  /// Shows the rationale only before the first real request, and never when
+  /// the OS permission is already granted.
+  Future<bool> _confirmRationaleIfNeeded(
+    String id, {
+    required String title,
+    required String body,
+    List<Permission> permissions = const [],
+  }) async {
+    if (_rationaleShown.contains(id)) return true;
+    if (await _alreadyGranted(permissions)) return true;
+    if (!mounted) return true;
+    final proceed = await _confirmRationale(title: title, body: body);
+    _rationaleShown.add(id);
+    return proceed;
+  }
+
   @override
   void dispose() {
     _recordTimer?.cancel();
@@ -72,6 +130,13 @@ class _AttachmentsPickerState extends State<AttachmentsPicker> {
       _showError(S.of(context).maxPhotosReached);
       return;
     }
+    final proceed = await _confirmRationaleIfNeeded(
+      'camera',
+      title: S.of(context).cameraPermissionTitle,
+      body: S.of(context).cameraPermissionBody,
+      permissions: const [Permission.camera],
+    );
+    if (!proceed || !mounted) return;
     try {
       final picked = await ImagePickerService.pickOne(fromCamera: true);
       if (picked != null) {
@@ -89,6 +154,13 @@ class _AttachmentsPickerState extends State<AttachmentsPicker> {
   }
 
   Future<void> _pickFromGallery() async {
+    final proceed = await _confirmRationaleIfNeeded(
+      'gallery',
+      title: S.of(context).galleryPermissionTitle,
+      body: S.of(context).galleryPermissionBody,
+      permissions: const [Permission.photos, Permission.storage],
+    );
+    if (!proceed || !mounted) return;
     try {
       final remaining = maxPhotos - _photos.length;
       final files = await ImagePickerService.pickMulti(limit: remaining);
@@ -130,6 +202,14 @@ class _AttachmentsPickerState extends State<AttachmentsPicker> {
       _emit();
       return;
     }
+
+    final proceed = await _confirmRationaleIfNeeded(
+      'microphone',
+      title: S.of(context).micPermissionTitle,
+      body: S.of(context).micPermissionBody,
+      permissions: const [Permission.microphone],
+    );
+    if (!proceed || !mounted) return;
 
     try {
       final status = await Permission.microphone.request();

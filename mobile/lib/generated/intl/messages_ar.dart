@@ -146,6 +146,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "الكاميرا غير مدعومة على هذا الجهاز",
     ),
     "cameraOption": MessageLookupByLibrary.simpleMessage("الكاميرا"),
+    "cameraPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "محتاجين نوصل لكاميرتك عشان تصوّر المشكلة وتحطها في طلبك.",
+    ),
+    "cameraPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "الوصول للكاميرا",
+    ),
     "cancel": MessageLookupByLibrary.simpleMessage("إلغاء"),
     "cancelIn": m1,
     "cancelRequest": MessageLookupByLibrary.simpleMessage("إلغاء الطلب"),
@@ -215,6 +221,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "contactInfo": MessageLookupByLibrary.simpleMessage("معلومات الاتصال"),
     "continueAsGuest": MessageLookupByLibrary.simpleMessage("المتابعة كزائر"),
+    "continueLabel": MessageLookupByLibrary.simpleMessage("متابعة"),
     "copiedToClipboard": m3,
     "couldNotLoadRequests": MessageLookupByLibrary.simpleMessage(
       "مش قادرة تحميل الطلبات",
@@ -307,6 +314,12 @@ class MessageLookup extends MessageLookupByLibrary {
       "المعرض غير مدعوم على هذا الجهاز",
     ),
     "galleryOption": MessageLookupByLibrary.simpleMessage("المعرض"),
+    "galleryPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "محتاجين نوصل لصورك عشان ترفق صورًا للمشكلة في طلبك.",
+    ),
+    "galleryPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "الوصول للصور",
+    ),
     "getStartedButton": MessageLookupByLibrary.simpleMessage("ابدأ الآن"),
     "getStartedDescription": MessageLookupByLibrary.simpleMessage(
       "عندك مشكلة في البيت؟\nاطلب فني موثوق في دقائق بسهولة.\n\n✓ اختيار فنيين موثوقين\n✓ تتبع الطلب خطوة بخطوة\n✓ تجربة بسيطة وسهلة الاستخدام",
@@ -375,8 +388,14 @@ class MessageLookup extends MessageLookupByLibrary {
     "maxPhotosReached": MessageLookupByLibrary.simpleMessage(
       "وصلت للحد الأقصى (4 صور)",
     ),
+    "micPermissionBody": MessageLookupByLibrary.simpleMessage(
+      "محتاجين نوصل للميكروفون عشان تسجّل ملاحظة صوتية تشرح بيها المشكلة.",
+    ),
     "micPermissionDenied": MessageLookupByLibrary.simpleMessage(
       "تم رفض إذن الميكروفون",
+    ),
+    "micPermissionTitle": MessageLookupByLibrary.simpleMessage(
+      "الوصول للميكروفون",
     ),
     "micPermissionUnavailable": MessageLookupByLibrary.simpleMessage(
       "إذن الميكروفون غير متاح",
