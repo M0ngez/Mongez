@@ -234,6 +234,8 @@ REST_FRAMEWORK = {
         "auth": os.getenv("THROTTLE_AUTH", "10/min"),       # login/register
         "order_create": os.getenv("THROTTLE_ORDER", "20/hour"),
         "rating": os.getenv("THROTTLE_RATING", "30/hour"),
+        "deletion_mint": os.getenv("THROTTLE_DELETION_MINT", "10/min"),
+        "deletion_confirm": os.getenv("THROTTLE_DELETION_CONFIRM", "5/min"),
     },
 }
 

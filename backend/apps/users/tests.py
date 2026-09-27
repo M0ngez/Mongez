@@ -1,8 +1,15 @@
+from django.core.cache import cache
 from django.urls import reverse
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
+
+from apps.notifications.models import DeviceToken, Notification
+from apps.orders.models import Order, OrderAttachment
+from apps.ratings.models import Rating
+from apps.workers.models import ServiceCategory, WorkerProfile
 
 from .models import Address, User
+from .views import get_tokens
 
 
 class AuthFlowTests(APITestCase):
@@ -182,3 +189,198 @@ class DefaultAddressSyncTests(APITestCase):
         self.user.refresh_from_db()
         self.assertEqual(self.user.city, "Nasr City")
         self.assertEqual(self.user.governorate, "cairo")
+
+
+class AccountDeletionTests(APITestCase):
+    """POST /api/auth/deletion-token/ + /api/auth/delete-account/.
+
+    The contract: strip PII in place, never delete the row (which would
+    CASCADE through Order/CommissionPayment/Rating and take a
+    technician's history with it), and refuse while work is in flight.
+    """
+
+    def setUp(self):
+        # DRF's throttles live in the LocMem cache, which persists across
+        # test methods — see apps/admin_api/tests.py.
+        cache.clear()
+
+        self.category = ServiceCategory.objects.create(name="Plumbing")
+        self.worker = User.objects.create_user(
+            username="honest_worker", phone="+201055550002",
+            password="Sup3r-Secret!", role=User.Role.WORKER,
+            profile_completed=True,
+        )
+        WorkerProfile.objects.create(
+            user=self.worker, profession="Plumbing", experience_years=4,
+        )
+
+        self.user = User.objects.create_user(
+            username="google_sub_123456", phone="+201055550001",
+            password="Sup3r-Secret!", role=User.Role.CLIENT,
+            profile_completed=True, email="deleteme@example.com",
+            name_ar="Ahmed Ali", first_name="Ahmed", last_name="Ali",
+            google_id="google-sub-123456",
+            address="12 Test St", governorate="cairo", city="Nasr City",
+        )
+        Address.objects.create(
+            user=self.user, label="Home", address="12 Test St",
+            governorate="cairo", city="Nasr City", is_default=True,
+        )
+        Notification.objects.create(
+            user=self.user, title="Hello", message="World",
+        )
+        DeviceToken.objects.create(
+            user=self.user, token="fcm-token-1", platform="android",
+        )
+        self.client.force_authenticate(user=self.user)
+
+    # ── minting ────────────────────────────────────────────────────────
+
+    def _mint(self):
+        return self.client.post(reverse("deletion-token"), {}, format="json")
+
+    def test_mint_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        response = self._mint()
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_mint_returns_url_carrying_the_token(self):
+        response = self._mint()
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertIn("token", response.data)
+        self.assertIn(f"token={response.data['token']}", response.data["url"])
+        self.assertIn("/delete-account", response.data["url"])
+        self.assertEqual(response.data["expires_in"], 15 * 60)
+
+    def test_mint_refused_for_admin_accounts(self):
+        admin = User.objects.create_user(
+            username="root_admin", phone="+201055550003",
+            password="Sup3r-Secret!", role=User.Role.ADMIN,
+        )
+        self.client.force_authenticate(user=admin)
+        response = self._mint()
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_mint_refused_while_order_is_in_flight(self):
+        Order.objects.create(client=self.user, service_category=self.category)
+        response = self._mint()
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.assertEqual(response.data["code"], "active_orders")
+        self.assertEqual(response.data["active_orders"], 1)
+
+    # ── confirming ─────────────────────────────────────────────────────
+
+    def _confirm(self, token):
+        return self.client.post(
+            reverse("delete-account"), {"token": token}, format="json",
+        )
+
+    def test_confirm_without_token_is_rejected(self):
+        response = self.client.post(reverse("delete-account"), {}, format="json")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_confirm_with_tampered_token_is_rejected(self):
+        token = self._mint().data["token"]
+        body, sig = token.split(".", 1)
+        response = self._confirm(f"{body}deadbeef{sig[7:]}")
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_confirm_anonymizes_every_pii_field(self):
+        response = self._confirm(self._mint().data["token"])
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertTrue(response.data["deleted"])
+
+        self.user.refresh_from_db()
+        for field in ("phone", "email", "name_ar", "first_name", "last_name",
+                      "address", "governorate", "city", "google_picture_url",
+                      "deletion_nonce"):
+            self.assertEqual(getattr(self.user, field), "", f"{field} survived")
+        self.assertIsNone(self.user.google_id)
+        # Django wraps a NULL FileField as `<ImageFieldFile: None>`; truth
+        # is what _collect_files() keys off, so assert emptiness.
+        self.assertFalse(self.user.avatar)
+        self.assertFalse(self.user.id_card_image)
+        self.assertTrue(self.user.username.startswith("deleted_"))
+        self.assertNotEqual(self.user.username, "google_sub_123456")
+        self.assertFalse(self.user.is_active)
+        self.assertFalse(self.user.has_usable_password())
+
+    def test_confirm_wipes_related_pii_but_keeps_the_user_row(self):
+        self._confirm(self._mint().data["token"])
+
+        self.assertEqual(Address.objects.filter(user=self.user).count(), 0)
+        self.assertEqual(Notification.objects.filter(user=self.user).count(), 0)
+        self.assertEqual(DeviceToken.objects.filter(user=self.user).count(), 0)
+        # The row itself must outlive every FK pointing at it.
+        self.assertTrue(User.objects.filter(pk=self.user.pk).exists())
+
+    def test_confirm_removes_the_worker_profile(self):
+        self.client.force_authenticate(user=self.worker)
+        token = self._mint().data["token"]
+        response = self._confirm(token)
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+        self.assertEqual(
+            WorkerProfile.objects.filter(user=self.worker).count(), 0,
+        )
+
+    def test_confirm_keeps_orders_and_ratings(self):
+        order = Order.objects.create(
+            client=self.user, worker=self.worker,
+            service_category=self.category, status=Order.COMPLETED,
+        )
+        OrderAttachment.objects.create(order=order, kind="image", file="x.jpg")
+        Rating.objects.create(order=order, client=self.user, worker=self.worker, stars=5)
+
+        response = self._confirm(self._mint().data["token"])
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.data)
+
+        self.assertTrue(Order.objects.filter(pk=order.pk).exists())
+        self.assertTrue(Rating.objects.filter(pk=order.rating.pk).exists())
+        # The technician's side of the record still resolves.
+        order.refresh_from_db()
+        self.assertEqual(order.client_id, self.user.pk)
+        self.assertEqual(order.rating.stars, 5)
+
+    def test_confirm_is_single_use(self):
+        token = self._mint().data["token"]
+        self.assertEqual(self._confirm(token).status_code, status.HTTP_200_OK)
+
+        # The nonce was cleared, so the same URL must not work again.
+        second = self._confirm(token)
+        self.assertEqual(second.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_confirm_blocked_if_orders_became_active_after_minting(self):
+        token = self._mint().data["token"]
+        Order.objects.create(client=self.user, service_category=self.category)
+        response = self._confirm(token)
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
+        self.user.refresh_from_db()
+        self.assertTrue(self.user.is_active)
+
+    def test_stale_access_token_is_rejected_after_deletion(self):
+        tokens = get_tokens(self.user)
+        self._confirm(self._mint().data["token"])
+
+        # Fresh client so no force_authenticate short-circuit — this has to
+        # go through the real JWT authenticator.
+        api = APIClient()
+        response = api.get(
+            reverse("my-profile"),
+            HTTP_AUTHORIZATION=f"Bearer {tokens['access']}",
+        )
+        self.assertIn(
+            response.status_code,
+            (status.HTTP_401_UNAUTHORIZED, status.HTTP_403_FORBIDDEN),
+        )
+
+    def test_google_signin_starts_a_fresh_account_after_deletion(self):
+        """google_id is wiped, so get_or_create must mint a new user.
+
+        Otherwise a deleted account would be resurrected on next sign-in.
+        """
+        self._confirm(self._mint().data["token"])
+        user, created = User.objects.get_or_create(google_id="google-sub-123456")
+        self.assertTrue(created)
+        self.assertNotEqual(user.pk, self.user.pk)

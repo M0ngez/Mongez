@@ -8,6 +8,7 @@ import AdminLayout from '../components/admin/AdminLayout';
 
 const LandingPage = lazy(() => import('../pages/LandingPage'));
 const PrivacyPolicy = lazy(() => import('../pages/PrivacyPolicy'));
+const DeleteAccount = lazy(() => import('../pages/DeleteAccount'));
 const LoginPage = lazy(() => import('../pages/Login'));
 const NotFound = lazy(() => import('../pages/NotFound'));
 const Dashboard = lazy(() => import('../pages/admin/Dashboard'));
@@ -62,6 +63,7 @@ function AppRoutes() {
             <Route element={<Layout />}>
               <Route path="/" element={<LandingPage />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/delete-account" element={<DeleteAccount />} />
             </Route>
 
             <Route

@@ -14,8 +14,16 @@ from rest_framework_simplejwt.tokens import RefreshToken
 import google.oauth2.id_token
 import google.auth.transport.requests
 
-from config.throttling import AuthRateThrottle
+from config.throttling import AuthRateThrottle, DeletionConfirmThrottle, DeletionMintThrottle
 from config.permissions import IsProfileCompleted
+from .deletion import (
+    TOKEN_TTL_SECONDS,
+    active_order_count,
+    anonymize_user,
+    deletion_url,
+    issue_deletion_token,
+    verify_deletion_token,
+)
 from .governorates import GOVERNORATES
 from .models import Address, User
 from .serializers import (
@@ -214,6 +222,87 @@ class DeleteIncompleteProfileView(APIView):
             )
         request.user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+def _active_orders_response(count):
+    return Response(
+        {
+            "error": "Finish or cancel your open orders before deleting your account.",
+            "code": "active_orders",
+            "active_orders": count,
+        },
+        status=status.HTTP_409_CONFLICT,
+    )
+
+
+class DeletionTokenView(APIView):
+    """POST /api/auth/deletion-token/ — mint a one-time deletion link.
+
+    The marketing site has no client login (the only /login route is the
+    admin dashboard), so instead of handing the browser a session we hand
+    it a short-lived signed token the confirm endpoint can verify.
+    """
+
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [DeletionMintThrottle]
+
+    def post(self, request):
+        user = request.user
+        if user.role == User.Role.ADMIN:
+            return Response(
+                {"error": "Admin accounts are managed from the dashboard."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        in_flight = active_order_count(user)
+        if in_flight:
+            return _active_orders_response(in_flight)
+
+        token = issue_deletion_token(user)
+        return Response(
+            {
+                "token": token,
+                "url": deletion_url(token),
+                "expires_in": TOKEN_TTL_SECONDS,
+            }
+        )
+
+
+class DeleteAccountView(APIView):
+    """POST /api/auth/delete-account/ — apply a deletion token.
+
+    ``AllowAny`` because the caller is a browser tab with no session;
+    authorisation is entirely the HMAC token, which is single-use and
+    expires in TOKEN_TTL_SECONDS.
+    """
+
+    permission_classes = [AllowAny]
+    throttle_classes = [DeletionConfirmThrottle]
+
+    def post(self, request):
+        token = (request.data.get("token") or "").strip()
+        if not token:
+            return Response(
+                {"error": "Missing deletion token."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user = verify_deletion_token(token)
+        if user is None:
+            return Response(
+                {"error": "This deletion link is invalid or has expired."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Statuses may have moved between minting the link and confirming.
+        in_flight = active_order_count(user)
+        if in_flight:
+            return _active_orders_response(in_flight)
+
+        counts = anonymize_user(user)
+        logger.info("Account anonymized: user_id=%s %s", user.pk, counts)
+
+        return Response({"deleted": True, "cleared": counts})
 
 
 class MyProfileView(APIView):

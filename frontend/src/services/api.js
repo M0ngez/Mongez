@@ -164,6 +164,14 @@ export const notificationsAPI = {
   markAllRead: () => api.post('/notifications/read-all/'),
 };
 
+// Account deletion. The public site has no client login, so the mobile app
+// mints a short-lived signed token first and puts it in this page's URL;
+// the confirm call is anonymous and authorised by that token alone.
+export const accountAPI = {
+  requestDeletionToken: () => api.post('/auth/deletion-token/'),
+  confirmDeletion: (token) => api.post('/auth/delete-account/', { token }),
+};
+
 export const adminAPI = {
   dashboard: () => api.get('/admin/dashboard/'),
   users: {

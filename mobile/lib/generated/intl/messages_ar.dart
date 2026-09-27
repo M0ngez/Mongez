@@ -30,31 +30,34 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(days) => "منذ ${days} ي";
 
-  static String m5(count) => "${count} من المفضلة";
+  static String m5(count) =>
+      "عندك ${count} طلب لسه شغّال. خلّصهم أو إلغهم الأول.";
 
-  static String m6(name) => "مرحبًا، ${name}!";
+  static String m6(count) => "${count} من المفضلة";
 
-  static String m7(hours) => "منذ ${hours} س";
+  static String m7(name) => "مرحبًا، ${name}!";
 
-  static String m8(minutes) => "منذ ${minutes} د";
+  static String m8(hours) => "منذ ${hours} س";
 
-  static String m9(count) => "${count} جديد";
+  static String m9(minutes) => "منذ ${minutes} د";
 
-  static String m10(count) => "صور (${count})";
+  static String m10(count) => "${count} جديد";
 
-  static String m11(count) => "${count} حديث";
+  static String m11(count) => "صور (${count})";
 
-  static String m12(date) => "مجدول · ${date}";
+  static String m12(count) => "${count} حديث";
 
-  static String m13(title) => "تمت إضافة خدمتك \"${title}\" بنجاح.";
+  static String m13(date) => "مجدول · ${date}";
 
-  static String m14(count) => "هذا الشهر: ${count}";
+  static String m14(title) => "تمت إضافة خدمتك \"${title}\" بنجاح.";
 
-  static String m15(count) => "${count} طلب غير مقروء";
+  static String m15(count) => "هذا الشهر: ${count}";
 
-  static String m16(count) => "ملاحظات صوتية (${count})";
+  static String m16(count) => "${count} طلب غير مقروء";
 
-  static String m17(km) => "خلال ${km} كم";
+  static String m17(count) => "ملاحظات صوتية (${count})";
+
+  static String m18(km) => "خلال ${km} كم";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -237,6 +240,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "daysAgo": m4,
     "defaultLabel": MessageLookupByLibrary.simpleMessage("افتراضي"),
     "delete": MessageLookupByLibrary.simpleMessage("حذف"),
+    "deleteAccount": MessageLookupByLibrary.simpleMessage("احذف حسابي"),
+    "deleteAccountActiveOrders": m5,
+    "deleteAccountFailed": MessageLookupByLibrary.simpleMessage(
+      "ما قدرناش نفتح صفحة الحذف. جرّب تاني.",
+    ),
     "deliveryAddress": MessageLookupByLibrary.simpleMessage("عنوان التوصيل"),
     "description": MessageLookupByLibrary.simpleMessage("الوصف"),
     "descriptionHint": MessageLookupByLibrary.simpleMessage(
@@ -282,7 +290,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "failedToSave": MessageLookupByLibrary.simpleMessage("فشل الحفظ"),
     "fastAndReliable": MessageLookupByLibrary.simpleMessage("سريع وموثوق!"),
     "favorites": MessageLookupByLibrary.simpleMessage("المفضلة"),
-    "favoritesCount": m5,
+    "favoritesCount": m6,
     "filter": MessageLookupByLibrary.simpleMessage("تصفية"),
     "finishProfileSetup": MessageLookupByLibrary.simpleMessage(
       "كمّل إعداد ملفك الشخصي",
@@ -311,13 +319,13 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "governorateHint": MessageLookupByLibrary.simpleMessage("المحافظة"),
     "greatService": MessageLookupByLibrary.simpleMessage("خدمة رائعة!"),
-    "hello": m6,
+    "hello": m7,
     "highlyRecommended": MessageLookupByLibrary.simpleMessage("أنصح به بشدة!"),
     "hireTechnicians": MessageLookupByLibrary.simpleMessage("استقدام فنيين"),
     "home": MessageLookupByLibrary.simpleMessage("المنزل"),
     "hotDeals": MessageLookupByLibrary.simpleMessage("العروض المميزة"),
     "hourlyRate": MessageLookupByLibrary.simpleMessage("الأجر بالساعة"),
-    "hoursAgo": m7,
+    "hoursAgo": m8,
     "howItWorks": MessageLookupByLibrary.simpleMessage("كيف يعمل التطبيق"),
     "imageNotSupported": MessageLookupByLibrary.simpleMessage(
       "اختيار الصور غير مدعوم على هذا الجهاز",
@@ -371,7 +379,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "إذن الميكروفون غير متاح",
     ),
     "minimumRating": MessageLookupByLibrary.simpleMessage("أدنى تقييم"),
-    "minutesAgo": m8,
+    "minutesAgo": m9,
     "mustBeBetween0And50": MessageLookupByLibrary.simpleMessage(
       "يجب أن يكون بين 0 و 50",
     ),
@@ -380,7 +388,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "myService": MessageLookupByLibrary.simpleMessage("خدمتي"),
     "myServices": MessageLookupByLibrary.simpleMessage("خدماتي"),
     "needAService": MessageLookupByLibrary.simpleMessage("محتاج خدمة؟"),
-    "newCount": m9,
+    "newCount": m10,
     "next": MessageLookupByLibrary.simpleMessage("التالي"),
     "niceAndFriendlyStaff": MessageLookupByLibrary.simpleMessage(
       "طاقم لطيف ومتعاون!",
@@ -438,7 +446,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "phoneTooShort": MessageLookupByLibrary.simpleMessage(
       "رقم الهاتف قصير جدًا",
     ),
-    "photosCount": m10,
+    "photosCount": m11,
     "placeOrder": MessageLookupByLibrary.simpleMessage("تأكيد الطلب"),
     "pleaseEnterPhone": MessageLookupByLibrary.simpleMessage(
       "من فضلك أدخل رقم الهاتف",
@@ -491,7 +499,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "receiveTimeout": MessageLookupByLibrary.simpleMessage(
       "انتهت مهلة الاستلام من السيرفر",
     ),
-    "recentCount": m11,
+    "recentCount": m12,
     "recentReviews": MessageLookupByLibrary.simpleMessage("التقييمات الحديثة"),
     "record": MessageLookupByLibrary.simpleMessage("تسجيل"),
     "register": MessageLookupByLibrary.simpleMessage("إنشاء حساب"),
@@ -519,7 +527,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reviews": MessageLookupByLibrary.simpleMessage("التقييمات"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("حفظ التغييرات"),
     "saving": MessageLookupByLibrary.simpleMessage("جارٍ الحفظ..."),
-    "scheduledDate": m12,
+    "scheduledDate": m13,
     "searchForWorkers": MessageLookupByLibrary.simpleMessage(
       "ابحث عن فنيين وخدمات",
     ),
@@ -532,7 +540,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "انتهت مهلة الإرسال إلى السيرفر",
     ),
     "serviceAdded": MessageLookupByLibrary.simpleMessage("تمت إضافة الخدمة"),
-    "serviceAddedMessage": m13,
+    "serviceAddedMessage": m14,
     "serviceArea": MessageLookupByLibrary.simpleMessage("منطقة الخدمة"),
     "serviceDescription": MessageLookupByLibrary.simpleMessage("وصف الخدمة"),
     "serviceInProgress": MessageLookupByLibrary.simpleMessage(
@@ -586,13 +594,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "thisFieldRequired": MessageLookupByLibrary.simpleMessage(
       "هذا الحقل مطلوب",
     ),
-    "thisMonthCount": m14,
+    "thisMonthCount": m15,
     "topRated": MessageLookupByLibrary.simpleMessage("الأعلى تقييمًا"),
     "trustedServices": MessageLookupByLibrary.simpleMessage("خدمات موثوقة"),
     "unexpectedError": MessageLookupByLibrary.simpleMessage(
       "حدث خطأ غير متوقع",
     ),
-    "unreadRequestsCount": m15,
+    "unreadRequestsCount": m16,
     "urgencyEmergency": MessageLookupByLibrary.simpleMessage("طوارئ"),
     "urgencyToday": MessageLookupByLibrary.simpleMessage("اليوم"),
     "urgencyWhenever": MessageLookupByLibrary.simpleMessage("في أي وقت"),
@@ -608,7 +616,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "viewAll": MessageLookupByLibrary.simpleMessage("عرض الكل"),
     "viewOnMap": MessageLookupByLibrary.simpleMessage("عرض على الخريطة"),
     "voiceNote": MessageLookupByLibrary.simpleMessage("ملاحظة صوتية"),
-    "voiceNotesCount": m16,
+    "voiceNotesCount": m17,
     "waitingConfirmation": MessageLookupByLibrary.simpleMessage(
       "بانتظار التأكيد",
     ),
@@ -620,7 +628,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "whenClientBooks": MessageLookupByLibrary.simpleMessage(
       "لما عميل يحجز خدمتك هتظهر هنا.",
     ),
-    "withinKm": m17,
+    "withinKm": m18,
     "workerDelayQuestion": MessageLookupByLibrary.simpleMessage(
       "هل كان السبب تأخر الفني؟",
     ),

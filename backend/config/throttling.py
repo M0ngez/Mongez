@@ -19,5 +19,15 @@ class OrderCreateThrottle(UserRateThrottle):
 
 
 class RatingThrottle(UserRateThrottle):
-    """Slows down rating spam by a single client."""
+    """Slows rating spam by a single client."""
     scope = "rating"
+
+
+class DeletionMintThrottle(UserRateThrottle):
+    """Account-deletion link minting — authenticated, so per-user."""
+    scope = "deletion_mint"
+
+
+class DeletionConfirmThrottle(AnonRateThrottle):
+    """Account-deletion confirm — anonymous browser tab, so per-IP."""
+    scope = "deletion_confirm"

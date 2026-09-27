@@ -134,6 +134,16 @@ class User(AbstractUser):
         default="",
         help_text="Google profile picture URL (not stored locally).",
     )
+    deletion_nonce = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        db_index=True,
+        help_text=(
+            "Makes the account-deletion token single use: it is set when the "
+            "token is minted and cleared once the deletion is applied."
+        ),
+    )
 
     REQUIRED_FIELDS = ["email"]
 

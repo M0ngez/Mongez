@@ -174,6 +174,20 @@ function PrivacyPolicy() {
                     </li>
                   </ul>
                 </article>
+
+                <article className="privacy-card privacy-contact-card">
+                  <div className="privacy-card-head">
+                    <span className="privacy-card-icon">
+                      <i className="bi bi-person-x"></i>
+                    </span>
+                    <h2 className="privacy-card-title">{t('privacy_delete_link')}</h2>
+                  </div>
+                  <p className="privacy-card-body">{t('privacy_delete_body')}</p>
+                  <Link to="/delete-account" className="privacy-back-link">
+                    <i className={`bi ${isRtl ? 'bi-arrow-left' : 'bi-arrow-right'} me-2`}></i>
+                    {t('delacc_title')}
+                  </Link>
+                </article>
               </div>
 
               <div className="text-center mt-5">

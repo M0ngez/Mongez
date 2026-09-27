@@ -8,6 +8,8 @@ urlpatterns = [
     path("auth/login/",               views.AdminLoginView.as_view(),             name="admin-login"),
     path("auth/complete-profile/",    views.CompleteProfileView.as_view(),         name="complete-profile"),
     path("auth/delete-incomplete/",   views.DeleteIncompleteProfileView.as_view(), name="delete-incomplete"),
+    path("auth/deletion-token/",      views.DeletionTokenView.as_view(), name="deletion-token"),
+    path("auth/delete-account/",      views.DeleteAccountView.as_view(), name="delete-account"),
     path("auth/logout/",              views.LogoutView.as_view(),                 name="logout"),
     path("auth/token/refresh/",       TokenRefreshView.as_view(),                 name="token-refresh"),
     # User profile

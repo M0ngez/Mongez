@@ -416,6 +416,14 @@
   "signInToViewProfile": "Sign in to view your profile.",
   "signInToViewData": "Sign in to view your data.",
   "privacyPolicy": "Privacy Policy",
+  "deleteAccount": "Delete my account",
+  "deleteAccountActiveOrders": "You still have {count} order(s) in progress. Finish or cancel them first.",
+  "@deleteAccountActiveOrders": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "deleteAccountFailed": "We could not open the deletion page. Please try again.",
   "unreadRequestsCount": "{count} unread requests",
   "@unreadRequestsCount": {
     "placeholders": {

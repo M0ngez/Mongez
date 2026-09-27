@@ -30,32 +30,35 @@ class MessageLookup extends MessageLookupByLibrary {
 
   static String m4(days) => "${days}d ago";
 
-  static String m5(count) => "${count} favorites";
+  static String m5(count) =>
+      "You still have ${count} order(s) in progress. Finish or cancel them first.";
 
-  static String m6(name) => "Hello, ${name}!";
+  static String m6(count) => "${count} favorites";
 
-  static String m7(hours) => "${hours}h ago";
+  static String m7(name) => "Hello, ${name}!";
 
-  static String m8(minutes) => "${minutes}m ago";
+  static String m8(hours) => "${hours}h ago";
 
-  static String m9(count) => "${count} new";
+  static String m9(minutes) => "${minutes}m ago";
 
-  static String m10(count) => "Photos (${count})";
+  static String m10(count) => "${count} new";
 
-  static String m11(count) => "${count} recent";
+  static String m11(count) => "Photos (${count})";
 
-  static String m12(date) => "Scheduled · ${date}";
+  static String m12(count) => "${count} recent";
 
-  static String m13(title) =>
+  static String m13(date) => "Scheduled · ${date}";
+
+  static String m14(title) =>
       "Your service \"${title}\" has been successfully added.";
 
-  static String m14(count) => "this month: ${count}";
+  static String m15(count) => "this month: ${count}";
 
-  static String m15(count) => "${count} unread requests";
+  static String m16(count) => "${count} unread requests";
 
-  static String m16(count) => "Voice notes (${count})";
+  static String m17(count) => "Voice notes (${count})";
 
-  static String m17(km) => "within ${km} km";
+  static String m18(km) => "within ${km} km";
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
@@ -246,6 +249,11 @@ class MessageLookup extends MessageLookupByLibrary {
     "daysAgo": m4,
     "defaultLabel": MessageLookupByLibrary.simpleMessage("Default"),
     "delete": MessageLookupByLibrary.simpleMessage("Delete"),
+    "deleteAccount": MessageLookupByLibrary.simpleMessage("Delete my account"),
+    "deleteAccountActiveOrders": m5,
+    "deleteAccountFailed": MessageLookupByLibrary.simpleMessage(
+      "We could not open the deletion page. Please try again.",
+    ),
     "deliveryAddress": MessageLookupByLibrary.simpleMessage("Delivery Address"),
     "description": MessageLookupByLibrary.simpleMessage("Description"),
     "descriptionHint": MessageLookupByLibrary.simpleMessage(
@@ -295,7 +303,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Fast and reliable!",
     ),
     "favorites": MessageLookupByLibrary.simpleMessage("Favorites"),
-    "favoritesCount": m5,
+    "favoritesCount": m6,
     "filter": MessageLookupByLibrary.simpleMessage("Filter"),
     "finishProfileSetup": MessageLookupByLibrary.simpleMessage(
       "Finish setting up your worker profile",
@@ -324,7 +332,7 @@ class MessageLookup extends MessageLookupByLibrary {
     ),
     "governorateHint": MessageLookupByLibrary.simpleMessage("Governorate"),
     "greatService": MessageLookupByLibrary.simpleMessage("Great service!"),
-    "hello": m6,
+    "hello": m7,
     "highlyRecommended": MessageLookupByLibrary.simpleMessage(
       "Highly recommended!",
     ),
@@ -332,7 +340,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "home": MessageLookupByLibrary.simpleMessage("Home"),
     "hotDeals": MessageLookupByLibrary.simpleMessage("Hot Deals"),
     "hourlyRate": MessageLookupByLibrary.simpleMessage("Hourly rate"),
-    "hoursAgo": m7,
+    "hoursAgo": m8,
     "howItWorks": MessageLookupByLibrary.simpleMessage("How It Works"),
     "imageNotSupported": MessageLookupByLibrary.simpleMessage(
       "Image picking is not supported on this platform",
@@ -388,7 +396,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Microphone permission unavailable",
     ),
     "minimumRating": MessageLookupByLibrary.simpleMessage("Minimum Rating"),
-    "minutesAgo": m8,
+    "minutesAgo": m9,
     "mustBeBetween0And50": MessageLookupByLibrary.simpleMessage(
       "Must be between 0 and 50",
     ),
@@ -397,7 +405,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "myService": MessageLookupByLibrary.simpleMessage("My service"),
     "myServices": MessageLookupByLibrary.simpleMessage("My Services"),
     "needAService": MessageLookupByLibrary.simpleMessage("Need a service?"),
-    "newCount": m9,
+    "newCount": m10,
     "next": MessageLookupByLibrary.simpleMessage("Next"),
     "niceAndFriendlyStaff": MessageLookupByLibrary.simpleMessage(
       "Nice and friendly staff!",
@@ -451,7 +459,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Phone number is too long",
     ),
     "phoneTooShort": MessageLookupByLibrary.simpleMessage("Phone too short"),
-    "photosCount": m10,
+    "photosCount": m11,
     "placeOrder": MessageLookupByLibrary.simpleMessage("Place Order"),
     "pleaseEnterPhone": MessageLookupByLibrary.simpleMessage(
       "Please enter your phone",
@@ -500,7 +508,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "receiveTimeout": MessageLookupByLibrary.simpleMessage(
       "Receive timeout in connection with API server",
     ),
-    "recentCount": m11,
+    "recentCount": m12,
     "recentReviews": MessageLookupByLibrary.simpleMessage("Recent reviews"),
     "record": MessageLookupByLibrary.simpleMessage("Record"),
     "register": MessageLookupByLibrary.simpleMessage("Register"),
@@ -532,7 +540,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "reviews": MessageLookupByLibrary.simpleMessage("Reviews"),
     "saveChanges": MessageLookupByLibrary.simpleMessage("Save changes"),
     "saving": MessageLookupByLibrary.simpleMessage("Saving…"),
-    "scheduledDate": m12,
+    "scheduledDate": m13,
     "searchForWorkers": MessageLookupByLibrary.simpleMessage(
       "Search for workers and services",
     ),
@@ -547,7 +555,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Send timeout in connection with API server",
     ),
     "serviceAdded": MessageLookupByLibrary.simpleMessage("Service Added"),
-    "serviceAddedMessage": m13,
+    "serviceAddedMessage": m14,
     "serviceArea": MessageLookupByLibrary.simpleMessage("Service area"),
     "serviceDescription": MessageLookupByLibrary.simpleMessage(
       "Service Description",
@@ -605,13 +613,13 @@ class MessageLookup extends MessageLookupByLibrary {
     "thisFieldRequired": MessageLookupByLibrary.simpleMessage(
       "This field is required",
     ),
-    "thisMonthCount": m14,
+    "thisMonthCount": m15,
     "topRated": MessageLookupByLibrary.simpleMessage("Top rated"),
     "trustedServices": MessageLookupByLibrary.simpleMessage("Trusted Services"),
     "unexpectedError": MessageLookupByLibrary.simpleMessage(
       "Unexpected error occurred",
     ),
-    "unreadRequestsCount": m15,
+    "unreadRequestsCount": m16,
     "urgencyEmergency": MessageLookupByLibrary.simpleMessage("Emergency"),
     "urgencyToday": MessageLookupByLibrary.simpleMessage("Today"),
     "urgencyWhenever": MessageLookupByLibrary.simpleMessage("Whenever"),
@@ -629,7 +637,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "viewAll": MessageLookupByLibrary.simpleMessage("View All"),
     "viewOnMap": MessageLookupByLibrary.simpleMessage("View On Map"),
     "voiceNote": MessageLookupByLibrary.simpleMessage("Voice note"),
-    "voiceNotesCount": m16,
+    "voiceNotesCount": m17,
     "waitingConfirmation": MessageLookupByLibrary.simpleMessage(
       "Waiting Confirmation",
     ),
@@ -641,7 +649,7 @@ class MessageLookup extends MessageLookupByLibrary {
     "whenClientBooks": MessageLookupByLibrary.simpleMessage(
       "When a client books your service it will land here.",
     ),
-    "withinKm": m17,
+    "withinKm": m18,
     "workerDelayQuestion": MessageLookupByLibrary.simpleMessage(
       "Was this because the worker was late?",
     ),

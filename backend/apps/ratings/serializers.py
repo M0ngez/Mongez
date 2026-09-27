@@ -51,9 +51,14 @@ class RatingSerializer(serializers.ModelSerializer):
             .aggregate(avg=Avg("stars"))["avg"]
         ) or 0.0
 
-        profile = worker.worker_profile
-        profile.average_rating = round(new_avg, 2)
-        profile.save()
+        # A worker who deleted their account has no profile row (and a
+        # profile-less worker is already a state the admin dashboard
+        # handles), so the rating is recorded but there is nowhere to
+        # persist the running average.
+        profile = getattr(worker, "worker_profile", None)
+        if profile is not None:
+            profile.average_rating = round(new_avg, 2)
+            profile.save()
 
         # Tell the worker — same fan-out the admin status-change uses.
         # In-app row + FCM push (best-effort if service account is configured).

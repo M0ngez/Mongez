@@ -416,6 +416,14 @@
   "signInToViewProfile": "سجل دخولك لعرض بروفايلك.",
   "signInToViewData": "سجل دخولك لعرض بياناتك.",
   "privacyPolicy": "سياسة الخصوصية",
+  "deleteAccount": "احذف حسابي",
+  "deleteAccountActiveOrders": "عندك {count} طلب لسه شغّال. خلّصهم أو إلغهم الأول.",
+  "@deleteAccountActiveOrders": {
+    "placeholders": {
+      "count": {}
+    }
+  },
+  "deleteAccountFailed": "ما قدرناش نفتح صفحة الحذف. جرّب تاني.",
   "unreadRequestsCount": "{count} طلب غير مقروء",
   "@unreadRequestsCount": {
     "placeholders": {

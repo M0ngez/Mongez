@@ -2875,6 +2875,36 @@ class S {
     );
   }
 
+  /// `Delete my account`
+  String get deleteAccount {
+    return Intl.message(
+      'Delete my account',
+      name: 'deleteAccount',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `You still have {count} order(s) in progress. Finish or cancel them first.`
+  String deleteAccountActiveOrders(Object count) {
+    return Intl.message(
+      'You still have $count order(s) in progress. Finish or cancel them first.',
+      name: 'deleteAccountActiveOrders',
+      desc: '',
+      args: [count],
+    );
+  }
+
+  /// `We could not open the deletion page. Please try again.`
+  String get deleteAccountFailed {
+    return Intl.message(
+      'We could not open the deletion page. Please try again.',
+      name: 'deleteAccountFailed',
+      desc: '',
+      args: [],
+    );
+  }
+
   /// `{count} unread requests`
   String unreadRequestsCount(Object count) {
     return Intl.message(
