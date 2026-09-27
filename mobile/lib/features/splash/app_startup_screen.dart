@@ -125,11 +125,6 @@ class _AppStartupScreenState extends State<AppStartupScreen> {
     }
   }
 
-  Future<bool> _tryRefreshToken() async {
-    final dioClient = getIt.get<ApiService>().dioClient;
-    return dioClient.tryRefreshToken();
-  }
-
   void _goToMainScreen(Auth auth) {
     if (!mounted) return;
     NavigationService.toMainScreen(context, auth);

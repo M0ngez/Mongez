@@ -45,7 +45,9 @@ class AuthRepository {
     } catch (e) {
       debugPrint('[AUTH ERROR] signInWithGoogle: $e');
       if (e is DioException) {
-        debugPrint('[AUTH ERROR] Response data: ${e.response?.data}');
+        if (kDebugMode) {
+          debugPrint('[AUTH ERROR] Response data: ${e.response?.data}');
+        }
         return left(ServerFailure.fromDioException(e));
       }
       return left(ServerFailure(errorMessage: e.toString()));

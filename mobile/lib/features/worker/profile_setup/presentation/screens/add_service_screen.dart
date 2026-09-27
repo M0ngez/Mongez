@@ -167,7 +167,7 @@ class _AddServiceScreenState extends State<AddServiceScreen> {
                       // Only pass the pre-filled id when it actually
                       // exists in the loaded list, otherwise Flutter
                       // asserts on missing dropdown values.
-                      value: categoriesState.categories
+                      initialValue: categoriesState.categories
                               .any((c) => c.id == _selectedCategoryId)
                           ? _selectedCategoryId
                           : null,
