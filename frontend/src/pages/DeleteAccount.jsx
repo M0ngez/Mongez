@@ -119,7 +119,11 @@ function DeleteAccount() {
                 </Card>
 
                 <article className="privacy-card privacy-card-highlight">
-                  <p className="privacy-card-body mb-0">{t('delacc_note_body')}</p>
+                  <p className="privacy-card-body">{t('delacc_note_body')}</p>
+                  <p className="privacy-card-body mb-0">
+                    <strong>{t('delacc_retention_title')}: </strong>
+                    {t('delacc_retention_body')}
+                  </p>
                 </article>
 
                 {stage === STAGE.NO_TOKEN && (
