@@ -15,6 +15,30 @@ jobs:
       DJANGO_SECRET_KEY: ci-secret-key-not-for-production
       DJANGO_DEBUG: "true"
       DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      # Read by config/settings.py. Without these the job fell back to
+      # DB_USER=mongez with an empty password against no server at all, so
+      # `migrate` died before a single test could run.
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: mongez
+      DB_USER: mongez
+      DB_PASSWORD: ci-postgres-password-not-for-production
+      DB_HOST: localhost
+      DB_PORT: "5432"
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: mongez
+          POSTGRES_PASSWORD: ci-postgres-password-not-for-production
+          POSTGRES_DB: mongez
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     defaults:
       run:
