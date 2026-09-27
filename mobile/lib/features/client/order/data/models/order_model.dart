@@ -12,8 +12,14 @@ String? _absoluteMediaUrl(String? raw) {
   return '$host$path';
 }
 
-enum OrderUrgency {
-  low, normal, high;
+/// Mirrors `Order.WORKER_DELAY` in `Order.CANCELLATION_REASON_CHOICES` on
+/// the backend. The backend derives the value from timing rather than from
+/// anything the client says: a cancel that only unlocked once the
+/// one-hour post-accept window elapsed means the technician accepted and
+/// never showed up on time.
+const kCancellationReasonWorkerDelay = 'WORKER_DELAY';
+
+enum OrderUrgency {  low, normal, high;
 
   String get apiValue {
     switch (this) {
@@ -77,6 +83,14 @@ class OrderModel extends Equatable {
   final double? latitude;
   final double? longitude;
   final String? scheduledFor;
+
+  /// Why the order was cancelled, from `Order.CANCELLATION_REASON_CHOICES`:
+  /// `WORKER_DELAY` when the cancel only became possible once the one-hour
+  /// post-accept window elapsed (the technician accepted and never showed
+  /// up on time), `OTHER` when the order was cancelled before anyone was
+  /// assigned. Null for orders that aren't cancelled.
+  final String? cancellationReason;
+
   final List<OrderAttachmentModel> attachments;
   final bool isRated;
   final String? createdAt;
@@ -107,6 +121,7 @@ class OrderModel extends Equatable {
     this.latitude,
     this.longitude,
     this.scheduledFor,
+    this.cancellationReason,
     this.attachments = const [],
     this.isRated = false,
     this.createdAt,
@@ -160,6 +175,7 @@ class OrderModel extends Equatable {
       latitude: toDouble(json['latitude']),
       longitude: toDouble(json['longitude']),
       scheduledFor: json['scheduled_for'] as String?,
+      cancellationReason: json['cancellation_reason'] as String?,
       attachments: attachments,
       isRated: json['is_rated'] as bool? ?? false,
       createdAt: json['created_at'] as String?,
@@ -171,7 +187,12 @@ class OrderModel extends Equatable {
     );
   }
 
-  OrderModel copyWith({bool? isRated, OrderStatus? status, List<OrderAttachmentModel>? attachments}) {
+  OrderModel copyWith({
+    bool? isRated,
+    OrderStatus? status,
+    String? cancellationReason,
+    List<OrderAttachmentModel>? attachments,
+  }) {
     return OrderModel(
       id: id,
       clientId: clientId,
@@ -193,6 +214,7 @@ class OrderModel extends Equatable {
       latitude: latitude,
       longitude: longitude,
       scheduledFor: scheduledFor,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
       attachments: attachments ?? this.attachments,
       isRated: isRated ?? this.isRated,
       createdAt: createdAt,
@@ -208,6 +230,7 @@ class OrderModel extends Equatable {
   List<Object?> get props => [
     id, clientId, workerId, categoryId, description,
     address, phone, status, urgency, latitude, longitude,
+    cancellationReason,
     attachments, isRated, createdAt,
   ];
 }

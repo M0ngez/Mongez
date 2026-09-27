@@ -1,7 +1,9 @@
 from datetime import timedelta
 from decimal import Decimal
+from importlib import import_module
 from unittest.mock import patch
 
+from django.apps import apps as django_apps
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
 from django.urls import reverse
@@ -151,8 +153,13 @@ class OrderLifecycleTests(APITestCase):
 
 class OrderCancellationReasonTests(APITestCase):
     """The cancellation flow must record *why* an order was cancelled so the
-    admin can tell a worker-delay cancellation apart from any other reason —
-    without ever assuming a reason the client didn't state."""
+    admin can tell a worker-delay cancellation apart from a plain client
+    cancel.
+
+    The reason is derived from the order's status at cancellation time —
+    the same distinction OrderCancelView's rules already make — so
+    accountability never depends on the cancelling client remembering to
+    state it."""
 
     @classmethod
     def setUpTestData(cls):
@@ -189,6 +196,24 @@ class OrderCancellationReasonTests(APITestCase):
             created_at=timezone.now() - timedelta(hours=3),
         )
 
+    def _pending_order(self):
+        """A request no worker has taken yet — the "normal" cancel case."""
+        return Order.objects.create(
+            client=self.client_user,
+            service_category=self.category,
+            address=self.address,
+            status=Order.PENDING,
+            created_at=timezone.now() - timedelta(minutes=10),
+        )
+
+    def _cancel(self, order, body=None):
+        self.client.force_authenticate(user=self.client_user)
+        with patch("apps.orders.views.paymob.void_commission", return_value={}):
+            return self.client.post(
+                reverse("order-cancel", args=[order.id]),
+                body or {}, format="json",
+            )
+
     def test_cancel_with_worker_delay_reason_is_recorded_and_notifies_admins(self):
         order = self._accepted_order()
 
@@ -216,31 +241,62 @@ class OrderCancellationReasonTests(APITestCase):
         self.assertEqual(latest.data.get("order_id"), order.id)
         self.assertEqual(latest.data.get("reason"), Order.WORKER_DELAY)
 
-    def test_cancel_without_reason_leaves_reason_blank(self):
-        order = self._accepted_order()
+    def test_cancel_before_accept_is_recorded_as_client_cancel(self):
+        """Cancelling while the order is still PENDING means no worker ever
+        took the job — it must not be charged to a worker, and it must not
+        page the admins."""
+        order = self._pending_order()
 
-        self.client.force_authenticate(user=self.client_user)
-        with patch("apps.orders.views.paymob.void_commission", return_value={}):
-            resp = self.client.post(reverse("order-cancel", args=[order.id]))
+        resp = self._cancel(order)
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
-        self.assertEqual(resp.data["cancellation_reason"], None)
+        self.assertEqual(resp.data["cancellation_reason"], Order.CANCELLATION_OTHER)
 
         order.refresh_from_db()
-        self.assertIsNone(order.cancellation_reason)
-
-        # No worker-delay alert fires for an unspecified cancellation.
+        self.assertEqual(order.cancellation_reason, Order.CANCELLATION_OTHER)
+        self.assertIsNotNone(order.cancelled_at)
         self.assertFalse(self.admin_user.notifications.exists())
 
-    def test_cancel_due_to_other_reason_does_not_flag_worker_delay(self):
+    def test_cancel_after_accept_window_is_recorded_as_worker_delay(self):
+        """Reaching the ACCEPTED branch at all means the 1-hour window has
+        elapsed, so the cancellation is charged to the worker — recorded and
+        pushed to every admin whether or not the client sent a reason. (The
+        mobile app's order-card cancel path sends no reason at all.)"""
         order = self._accepted_order()
 
-        self.client.force_authenticate(user=self.client_user)
-        with patch("apps.orders.views.paymob.void_commission", return_value={}):
-            resp = self.client.post(
-                reverse("order-cancel", args=[order.id]),
-                {"reason": Order.CANCELLATION_OTHER}, format="json",
-            )
+        resp = self._cancel(order)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data["cancellation_reason"], Order.WORKER_DELAY)
+
+        order.refresh_from_db()
+        self.assertEqual(order.cancellation_reason, Order.WORKER_DELAY)
+        self.assertIsNotNone(order.cancelled_at)
+
+        notifs = self.admin_user.notifications.all()
+        self.assertTrue(notifs.exists())
+        latest = notifs.first()
+        self.assertIn(str(order.id), latest.message)
+        self.assertIn("slow_worker", latest.message)
+        self.assertEqual(latest.data.get("reason"), Order.WORKER_DELAY)
+
+    def test_timing_overrides_a_client_supplied_reason(self):
+        """A client claiming "another reason" for a late cancellation must
+        not downgrade it — accountability can't be opted out of."""
+        order = self._accepted_order()
+
+        resp = self._cancel(order, {"reason": Order.CANCELLATION_OTHER})
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
+        self.assertEqual(resp.data["cancellation_reason"], Order.WORKER_DELAY)
+        self.assertTrue(self.admin_user.notifications.exists())
+
+    def test_client_cannot_claim_a_worker_delay_that_never_happened(self):
+        """Symmetric guard: naming a worker delay on an order no worker had
+        accepted must not manufacture an incident against them."""
+        order = self._pending_order()
+
+        resp = self._cancel(order, {"reason": Order.WORKER_DELAY})
 
         self.assertEqual(resp.status_code, status.HTTP_200_OK, resp.data)
         self.assertEqual(resp.data["cancellation_reason"], Order.CANCELLATION_OTHER)
@@ -258,6 +314,122 @@ class OrderCancellationReasonTests(APITestCase):
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("error", resp.data)
         self.assertIn("reason", resp.data["error"])
+
+
+class CancellationReasonBackfillTests(APITestCase):
+    """Migration 0008 reconstructs the reason for orders that were
+    cancelled before the endpoint derived it from timing — the rows that
+    used to render as a bare "—" and were indistinguishable from each
+    other in the admin panel."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.category = ServiceCategory.objects.create(name="Plumbing")
+        cls.client_user = User.objects.create_user(
+            username="backfill_client", phone="+201000000040",
+            password="Sup3r-Secret!", role=User.Role.CLIENT,
+            profile_completed=True,
+        )
+        cls.address = Address.objects.create(
+            user=cls.client_user, label="Home",
+            address="12 Test St", governorate="cairo", city="Nasr City",
+        )
+
+    def _cancelled(self, accepted_at=None, cancelled_at=None, reason=None):
+        return Order.objects.create(
+            client=self.client_user,
+            service_category=self.category,
+            address=self.address,
+            status=Order.CANCELLED,
+            accepted_at=accepted_at,
+            cancelled_at=cancelled_at,
+            cancellation_reason=reason,
+            created_at=timezone.now() - timedelta(days=1),
+        )
+
+    def _run(self):
+        migration = import_module(
+            "apps.orders.migrations.0008_backfill_cancellation_reason",
+        )
+        migration.backfill_cancellation_reason(django_apps, None)
+
+    def test_cancelled_before_any_accept_is_a_client_cancel(self):
+        order = self._cancelled(
+            accepted_at=None,
+            cancelled_at=timezone.now() - timedelta(hours=5),
+        )
+
+        self._run()
+
+        order.refresh_from_db()
+        self.assertEqual(order.cancellation_reason, Order.CANCELLATION_OTHER)
+
+    def test_cancelled_at_or_after_the_one_hour_window_is_worker_delay(self):
+        # Accepted 3h ago, cancelled 2h ago → exactly one hour elapsed.
+        accepted_at = timezone.now() - timedelta(hours=3)
+        order = self._cancelled(
+            accepted_at=accepted_at,
+            cancelled_at=accepted_at + timedelta(hours=1),
+        )
+
+        self._run()
+
+        order.refresh_from_db()
+        self.assertEqual(order.cancellation_reason, Order.WORKER_DELAY)
+
+    def test_cancelled_inside_the_window_is_not_charged_to_the_worker(self):
+        # Only an admin override can do this, and it carries no evidence
+        # the worker was late — so it must not manufacture an incident.
+        accepted_at = timezone.now() - timedelta(minutes=30)
+        order = self._cancelled(
+            accepted_at=accepted_at,
+            cancelled_at=accepted_at + timedelta(minutes=10),
+        )
+
+        self._run()
+
+        order.refresh_from_db()
+        self.assertEqual(order.cancellation_reason, Order.CANCELLATION_OTHER)
+
+    def test_a_reason_already_recorded_is_left_alone(self):
+        stated = self._cancelled(
+            accepted_at=None,
+            cancelled_at=timezone.now() - timedelta(hours=5),
+            reason=Order.WORKER_DELAY,
+        )
+
+        self._run()
+
+        stated.refresh_from_db()
+        self.assertEqual(stated.cancellation_reason, Order.WORKER_DELAY)
+
+    def test_non_cancelled_orders_are_untouched(self):
+        rejected = Order.objects.create(
+            client=self.client_user,
+            service_category=self.category,
+            address=self.address,
+            status=Order.REJECTED,
+            cancelled_at=timezone.now() - timedelta(hours=5),
+            created_at=timezone.now() - timedelta(days=1),
+        )
+
+        self._run()
+
+        rejected.refresh_from_db()
+        self.assertIsNone(rejected.cancellation_reason)
+
+    def test_running_it_twice_changes_nothing(self):
+        accepted_at = timezone.now() - timedelta(hours=3)
+        order = self._cancelled(
+            accepted_at=accepted_at,
+            cancelled_at=accepted_at + timedelta(hours=2),
+        )
+
+        self._run()
+        self._run()
+
+        order.refresh_from_db()
+        self.assertEqual(order.cancellation_reason, Order.WORKER_DELAY)
 
 
 class OrderAttachmentLimitTests(APITestCase):

@@ -127,15 +127,26 @@ class Order(models.Model):
         "client" (orders a client placed) or "worker" (orders assigned to
         a worker). Defaults to "client", matching the UserProfile page.
 
-        Uses real data only. Counts that are *not* the client's fault —
-        a cancellation due to a worker delay — are reported separately so
-        they can be excluded from client-behavior signals downstream.
+        Uses real data only. Cancellations are split into the two buckets
+        the cancel endpoint distinguishes: those charged to the worker
+        (WORKER_DELAY — the client cancelled only once the 1-hour window
+        had elapsed, i.e. the worker was late) and every other one
+        (cancelled_by_client). The two always add up to `cancelled_orders`
+        so the admin UI can render the breakdown without arithmetic gaps,
+        and `cancelled_by_client` is used instead of a strict OTHER filter
+        so a legacy row with a blank reason can't fall between them.
+        Cancellations that are *not* the client's fault are still reported
+        separately so they can be excluded from client-behavior signals
+        downstream.
         """
         qs = cls.objects.filter(**{f"{lookup}": user})
         cancelled = qs.filter(status=cls.CANCELLED)
         total = qs.count()
 
         since = timezone.now() - timedelta(days=recent_days)
+        delay_cancellations = cancelled.filter(
+            cancellation_reason=cls.WORKER_DELAY,
+        )
         return {
             "total_orders": total,
             "completed_orders": qs.filter(status=cls.COMPLETED).count(),
@@ -144,7 +155,8 @@ class Order(models.Model):
             "recent_cancellations_30d": cancelled.filter(
                 cancelled_at__gte=since,
             ).count(),
-            "cancelled_due_to_worker_delay": cancelled.filter(
+            "cancelled_due_to_worker_delay": delay_cancellations.count(),
+            "cancelled_by_client": cancelled.exclude(
                 cancellation_reason=cls.WORKER_DELAY,
             ).count(),
         }

@@ -178,7 +178,7 @@ class _OrderCardActionsState extends State<OrderCardActions> {
         return _statusLine(Icons.cancel, Colors.red, lang.rejectedByWorker);
       }
       if (widget.order.status == OrderStatus.cancelled) {
-        return _statusLine(Icons.cancel, Colors.grey, lang.cancelledByYou);
+        return _cancelledLine(lang);
       }
     } else {
       if (widget.order.status == OrderStatus.pending) {
@@ -253,7 +253,7 @@ class _OrderCardActionsState extends State<OrderCardActions> {
         return _statusLine(Icons.cancel, Colors.red, lang.rejectedByYou);
       }
       if (widget.order.status == OrderStatus.cancelled) {
-        return _statusLine(Icons.cancel, Colors.grey, lang.cancelledByCustomer);
+        return _cancelledLine(lang);
       }
     }
 
@@ -274,6 +274,26 @@ class _OrderCardActionsState extends State<OrderCardActions> {
           child: Text(text, style: TextStyle(color: color, fontSize: 13)),
         ),
       ],
+    );
+  }
+
+  /// Red when the cancellation was charged to this worker for being late,
+  /// grey when the client backed out before anyone took the job — the same
+  /// distinction the badge next to it draws.
+  Widget _cancelledLine(S lang) {
+    final chargedToWorker =
+        widget.order.cancellationReason == kCancellationReasonWorkerDelay;
+    if (chargedToWorker) {
+      return _statusLine(
+        Icons.warning_amber_rounded,
+        Colors.red,
+        widget.isCustomer ? lang.cancelledWorkerLate : lang.cancelledYouWereLate,
+      );
+    }
+    return _statusLine(
+      Icons.cancel,
+      Colors.grey,
+      widget.isCustomer ? lang.cancelledByYou : lang.cancelledByCustomer,
     );
   }
 

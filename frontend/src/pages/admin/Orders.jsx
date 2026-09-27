@@ -3,24 +3,20 @@ import { adminAPI } from '../../services/api';
 import Table from '../../components/admin/Table';
 import { usePolling, useTimeAgo } from '../../hooks/usePolling';
 import ExportCsvButton from '../../components/admin/ExportCsvButton';
-
-const statusColors = {
-  PENDING: { bg: '#f59e0b20', color: '#f59e0b' },
-  ACCEPTED: { bg: '#3b82f620', color: '#3b82f6' },
-  IN_PROGRESS: { bg: '#8b5cf620', color: '#8b5cf6' },
-  WAITING_CONFIRMATION: { bg: '#f9731620', color: '#f97316' },
-  REJECTED: { bg: '#ef444420', color: '#ef4444' },
-  CANCELLED: { bg: '#6b728020', color: '#6b7280' },
-  COMPLETED: { bg: '#10b98120', color: '#10b981' },
-};
-
-const allStatuses = ['PENDING', 'ACCEPTED', 'IN_PROGRESS', 'WAITING_CONFIRMATION', 'REJECTED', 'CANCELLED', 'COMPLETED'];
+import {
+  CANCELLATION_REASONS,
+  ORDER_STATUSES,
+  REASON_WORKER_DELAY,
+  reasonStyle,
+  statusStyle,
+} from '../../utils/orderStatus';
 
 const fetchOrders = () =>
   adminAPI.orders.list({ page_size: 100 }).then((res) => res.data?.results || []);
 
 const Orders = () => {
   const [statusFilter, setStatusFilter] = useState('');
+  const [reasonFilter, setReasonFilter] = useState('');
   const [changingStatus, setChangingStatus] = useState(null);
 
   // 10 s — Orders is the most dynamic admin surface; we want a new mobile
@@ -49,7 +45,15 @@ const Orders = () => {
     }
   }, [orders, setData, refresh]);
 
-  const filteredOrders = statusFilter ? orders.filter((o) => o.status === statusFilter) : orders;
+  const filteredOrders = orders.filter(
+    (o) =>
+      (!statusFilter || o.status === statusFilter) &&
+      (!reasonFilter || o.cancellation_reason === reasonFilter),
+  );
+
+  const delayCancellations = orders.filter(
+    (o) => o.status === 'CANCELLED' && o.cancellation_reason === REASON_WORKER_DELAY,
+  ).length;
 
   const columns = [
     { key: 'id', label: 'Order #' },
@@ -72,11 +76,32 @@ const Orders = () => {
       key: 'status',
       label: 'Status',
       render: (row) => {
-        const colors = statusColors[row.status] || { bg: '#6b728020', color: '#6b7280' };
+        const colors = statusStyle(row.status, row.cancellation_reason);
         return (
           <span className="badge rounded-pill px-3 py-2" style={{ backgroundColor: colors.bg, color: colors.color, fontSize: '12px', fontWeight: '500' }}>
-            {row.status?.replace(/_/g, ' ')}
+            {colors.label}
           </span>
+        );
+      },
+    },
+    {
+      key: 'cancellation_reason',
+      label: 'Cancellation',
+      render: (row) => {
+        const reason = reasonStyle(row.cancellation_reason);
+        if (!reason) return <span className="text-muted" style={{ fontSize: '13px' }}>—</span>;
+        return (
+          <div className="d-flex flex-column gap-1">
+            <span className="badge rounded-pill px-3 py-1 align-self-start" style={{ backgroundColor: reason.bg, color: reason.color, fontSize: '12px' }}>
+              <i className={`bi ${reason.icon} me-1`}></i>
+              {reason.label}
+            </span>
+            {row.cancelled_at && (
+              <span className="text-muted" style={{ fontSize: '11px' }}>
+                {new Date(row.cancelled_at).toLocaleDateString()}
+              </span>
+            )}
+          </div>
         );
       },
     },
@@ -99,7 +124,7 @@ const Orders = () => {
           disabled={changingStatus === row.id}
         >
           <option value="">{changingStatus === row.id ? 'Updating...' : 'Change to...'}</option>
-          {allStatuses.filter((s) => s !== row.status).map((s) => (
+          {ORDER_STATUSES.filter((s) => s !== row.status).map((s) => (
             <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
           ))}
         </select>
@@ -123,10 +148,16 @@ const Orders = () => {
             <i className="bi bi-arrow-repeat"></i>
           </button>
           <ExportCsvButton fetcher={adminAPI.exports.orders} filename="orders.csv" />
-          <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ borderRadius: '10px', padding: '8px 14px', minWidth: '180px' }}>
+          <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ borderRadius: '10px', padding: '8px 14px', minWidth: '170px' }}>
             <option value="">All Statuses</option>
-            {allStatuses.map((s) => (
+            {ORDER_STATUSES.map((s) => (
               <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+            ))}
+          </select>
+          <select className="form-select" value={reasonFilter} onChange={(e) => setReasonFilter(e.target.value)} style={{ borderRadius: '10px', padding: '8px 14px', minWidth: '190px' }}>
+            <option value="">All Cancellations</option>
+            {Object.entries(CANCELLATION_REASONS).map(([value, cfg]) => (
+              <option key={value} value={value}>{cfg.label}</option>
             ))}
           </select>
         </div>
@@ -147,16 +178,23 @@ const Orders = () => {
       <div className="card border-0 shadow-sm" style={{ borderRadius: '15px' }}>
         <div className="card-body p-4">
           <div className="mb-3 d-flex gap-3 flex-wrap">
-            {allStatuses.map((s) => {
-              const colors = statusColors[s] || { color: '#6b7280', bg: '#6b728020' };
+            {ORDER_STATUSES.map((s) => {
+              const colors = statusStyle(s);
               const count = orders.filter((o) => o.status === s).length;
               return (
                 <div key={s} className="d-flex align-items-center gap-1" style={{ fontSize: '13px' }}>
-                  <span className="badge rounded-pill px-2 py-1" style={{ backgroundColor: colors.bg, color: colors.color }}>{s.replace(/_/g, ' ')}</span>
+                  <span className="badge rounded-pill px-2 py-1" style={{ backgroundColor: colors.bg, color: colors.color }}>{colors.label}</span>
                   <span className="fw-bold" style={{ color: colors.color }}>{count}</span>
                 </div>
               );
             })}
+            <div className="d-flex align-items-center gap-1" style={{ fontSize: '13px' }}>
+              <span className="badge rounded-pill px-2 py-1" style={{ backgroundColor: CANCELLATION_REASONS.WORKER_DELAY.bg, color: CANCELLATION_REASONS.WORKER_DELAY.color }}>
+                <i className={`bi ${CANCELLATION_REASONS.WORKER_DELAY.icon} me-1`}></i>
+                {CANCELLATION_REASONS.WORKER_DELAY.label}
+              </span>
+              <span className="fw-bold" style={{ color: CANCELLATION_REASONS.WORKER_DELAY.color }}>{delayCancellations}</span>
+            </div>
           </div>
           <Table columns={columns} data={filteredOrders} loading={loading} emptyMessage="No orders found" />
         </div>

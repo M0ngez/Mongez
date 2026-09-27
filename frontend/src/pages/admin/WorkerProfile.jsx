@@ -1,21 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
-
-const statusColors = {
-  PENDING: { bg: '#f59e0b20', color: '#f59e0b' },
-  ACCEPTED: { bg: '#3b82f620', color: '#3b82f6' },
-  IN_PROGRESS: { bg: '#8b5cf620', color: '#8b5cf6' },
-  WAITING_CONFIRMATION: { bg: '#f9731620', color: '#f97316' },
-  REJECTED: { bg: '#ef444420', color: '#ef4444' },
-  CANCELLED: { bg: '#6b728020', color: '#6b7280' },
-  COMPLETED: { bg: '#10b98120', color: '#10b981' },
-};
-
-const reasonLabels = {
-  WORKER_DELAY: { label: 'Worker delay', color: '#ef4444', bg: '#ef444420', icon: 'bi-clock-history' },
-  OTHER: { label: 'Other', color: '#6b7280', bg: '#6b728020', icon: 'bi-question-circle' },
-};
+import { statusStyle, reasonStyle } from '../../utils/orderStatus';
 
 const WorkerProfile = () => {
   const { id } = useParams();
@@ -64,7 +50,7 @@ const WorkerProfile = () => {
   const ordersList = orders?.results || [];
   const ratingsList = ratings?.results || [];
 
-  const statCard = (icon, value, label, color = '#6366f1') => (
+  const statCard = (icon, value, label, color = '#6366f1', sub) => (
     <div className="card border-0 shadow-sm h-100" style={{ borderRadius: '12px' }}>
       <div className="card-body d-flex align-items-center gap-3 p-3">
         <div className="rounded-circle d-flex align-items-center justify-content-center" style={{ width: '44px', height: '44px', flexShrink: 0, backgroundColor: `${color}15`, color }}>
@@ -73,6 +59,7 @@ const WorkerProfile = () => {
         <div className="min-w-0">
           <div className="fw-bold" style={{ fontSize: '18px', color: '#0f172a' }}>{value}</div>
           <div className="text-muted" style={{ fontSize: '12px' }}>{label}</div>
+          {sub && <div style={{ fontSize: '11px', color: '#94a3b8' }}>{sub}</div>}
         </div>
       </div>
     </div>
@@ -149,9 +136,17 @@ const WorkerProfile = () => {
         <span className="badge rounded-pill" style={{ backgroundColor: '#f1f5f9', color: '#64748b', fontSize: '11px', fontWeight: '500' }}>assigned orders</span>
       </div>
       <div className="row g-3">
-        <div className="col-md-3 col-6">{statCard('bi-x-circle', summary.cancelled_orders ?? 0, 'Cancelled', '#ef4444')}</div>
+        <div className="col-md-3 col-6">
+          {statCard(
+            'bi-x-circle',
+            summary.cancelled_orders ?? 0,
+            'Cancelled',
+            '#ef4444',
+            `${summary.cancelled_by_client ?? 0} by client · ${summary.cancelled_due_to_worker_delay ?? 0} worker delay`,
+          )}
+        </div>
         <div className="col-md-3 col-6">{statCard('bi-calendar-x', summary.recent_cancellations_30d ?? 0, 'Cancelled (30 days)', '#f59e0b')}</div>
-        <div className="col-md-3 col-6">{statCard('bi-clock-history', summary.cancelled_due_to_worker_delay ?? 0, 'Due to Worker Delay', '#f97316')}</div>
+        <div className="col-md-3 col-6">{statCard('bi-clock-history', summary.cancelled_due_to_worker_delay ?? 0, 'Due to Worker Delay', '#f97316', 'accepted, then never showed')}</div>
         <div className="col-md-3 col-6">{statCard('bi-percent', `${summary.cancellation_rate ?? 0}%`, 'Cancellation Rate', '#8b5cf6')}</div>
       </div>
 
@@ -261,8 +256,8 @@ const WorkerProfile = () => {
                     {ordersList.length === 0 ? (
                       <tr><td colSpan="6" className="text-center py-4 text-muted">No orders for this worker.</td></tr>
                     ) : ordersList.map((o) => {
-                      const sc = statusColors[o.status] || statusColors.PENDING;
-                      const reason = reasonLabels[o.cancellation_reason];
+                      const sc = statusStyle(o.status, o.cancellation_reason);
+                      const reason = reasonStyle(o.cancellation_reason);
                       return (
                         <tr key={o.id}>
                           <td style={{ fontWeight: '500' }}>#{o.id}</td>
@@ -273,15 +268,22 @@ const WorkerProfile = () => {
                             {o.service_category?.name || '—'}
                           </td>
                           <td>
-                            <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: sc.bg, color: sc.color, fontSize: '12px' }}>{o.status}</span>
+                            <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: sc.bg, color: sc.color, fontSize: '12px' }}>{sc.label}</span>
                           </td>
                           <td style={{ color: '#64748b', fontSize: '13px' }}>{new Date(o.created_at).toLocaleDateString()}</td>
                           <td>
-                            {o.cancellation_reason ? (
-                              <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: reason?.bg || '#6b728020', color: reason?.color || '#6b7280', fontSize: '12px' }}>
-                                <i className={`bi ${reason?.icon || 'bi-question-circle'} me-1`}></i>
-                                {reason?.label || o.cancellation_reason}
-                              </span>
+                            {reason ? (
+                              <div className="d-flex flex-column gap-1">
+                                <span className="badge rounded-pill px-3 py-1 align-self-start" style={{ backgroundColor: reason.bg, color: reason.color, fontSize: '12px' }}>
+                                  <i className={`bi ${reason.icon} me-1`}></i>
+                                  {reason.label}
+                                </span>
+                                {o.cancelled_at && (
+                                  <span className="text-muted" style={{ fontSize: '11px' }}>
+                                    {new Date(o.cancelled_at).toLocaleDateString()}
+                                  </span>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-muted" style={{ fontSize: '12px' }}>—</span>
                             )}

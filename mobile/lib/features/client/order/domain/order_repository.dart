@@ -27,6 +27,11 @@ abstract class OrderRepository {
   });
   Future<Either<Failure, OrderModel>> acceptOrder(int id);
   Future<Either<Failure, OrderModel>> rejectOrder(int id);
+  /// Optional legacy hint, still validated by the backend but no longer
+  /// authoritative: the backend derives `cancellation_reason` from *when*
+  /// the cancel was possible (before any accept → OTHER, after the
+  /// one-hour window → WORKER_DELAY) so accountability never depends on
+  /// the caller stating it. Prefer omitting it.
   Future<Either<Failure, void>> cancelOrder(int id, {String? reason});
   Future<Either<Failure, OrderModel>> markAsFinished(int id);
   Future<Either<Failure, OrderModel>> confirmCompletion(int id);

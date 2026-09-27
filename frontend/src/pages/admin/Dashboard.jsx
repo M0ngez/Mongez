@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import StatsCards from '../../components/admin/StatsCards';
 import { adminAPI } from '../../services/api';
 import { usePolling, useTimeAgo } from '../../hooks/usePolling';
+import { statusStyle } from '../../utils/orderStatus';
 
 const quickLinks = [
   { path: '/admin/users', label: 'Manage Users', icon: 'bi-people', color: '#6366f1', desc: 'View and manage all system users' },
@@ -11,16 +12,6 @@ const quickLinks = [
   { path: '/admin/orders', label: 'Manage Orders', icon: 'bi-cart-check', color: '#ef4444', desc: 'Track and manage all orders' },
   { path: '/admin/ratings', label: 'Ratings & Reviews', icon: 'bi-star', color: '#8b5cf6', desc: 'View all ratings and reviews' },
 ];
-
-const statusColors = {
-  PENDING: '#f59e0b',
-  ACCEPTED: '#3b82f6',
-  IN_PROGRESS: '#8b5cf6',
-  WAITING_CONFIRMATION: '#f97316',
-  REJECTED: '#ef4444',
-  CANCELLED: '#6b7280',
-  COMPLETED: '#10b981',
-};
 
 const fetchDashboard = () => adminAPI.dashboard().then((res) => res.data);
 
@@ -94,7 +85,9 @@ const Dashboard = () => {
               {recentOrders.length === 0 && !loading && (
                 <p className="text-muted text-center py-4 mb-0">No orders yet</p>
               )}
-              {recentOrders.map((order) => (
+              {recentOrders.map((order) => {
+                const s = statusStyle(order.status, order.cancellation_reason);
+                return (
                 <div key={order.id} className="d-flex align-items-center justify-content-between py-3 border-bottom" style={{ borderColor: '#f1f5f9 !important' }}>
                   <div>
                     <p className="fw-semibold mb-1" style={{ fontSize: '14px', color: '#1e293b' }}>
@@ -107,16 +100,17 @@ const Dashboard = () => {
                   <span
                     className="badge rounded-pill px-3 py-2"
                     style={{
-                      backgroundColor: `${statusColors[order.status] || '#6b7280'}20`,
-                      color: statusColors[order.status] || '#6b7280',
+                      backgroundColor: s.bg,
+                      color: s.color,
                       fontSize: '12px',
                       fontWeight: '500',
                     }}
                   >
-                    {order.status?.replace('_', ' ')}
+                    {s.label}
                   </span>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>

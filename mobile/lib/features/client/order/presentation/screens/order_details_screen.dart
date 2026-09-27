@@ -38,10 +38,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
   Duration _remaining = Duration.zero;
   bool _lateCancelReady = false;
 
-  // Values accepted by the backend's Order.CANCELLATION_REASON_CHOICES.
-  static const _reasonWorkerDelay = 'WORKER_DELAY';
-  static const _reasonOther = 'OTHER';
-
   @override
   void initState() {
     super.initState();
@@ -97,6 +93,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     }
   }
 
+  /// Why this order was cancelled, as decided by the backend (see
+  /// [kCancellationReasonWorkerDelay]) rather than by whoever cancelled it.
+  String _cancellationReasonLabel(S lang) {
+    return _order.cancellationReason == kCancellationReasonWorkerDelay
+        ? lang.cancelledWorkerLate
+        : lang.cancelledByCustomer;
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = S.of(context);
@@ -147,7 +151,11 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                           ],
                         ),
                       ),
-                      StatusBadge(status: _order.status, isCustomer: widget.isCustomer),
+                      StatusBadge(
+                        status: _order.status,
+                        isCustomer: widget.isCustomer,
+                        cancellationReason: _order.cancellationReason,
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -179,6 +187,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   if (_order.completedAt != null)
                     _infoRow(Icons.task_alt,
                         lang.completedDate(_formatDate(_order.completedAt))),
+                  if (_order.status == OrderStatus.cancelled &&
+                      _order.cancellationReason != null)
+                    _infoRow(Icons.block, _cancellationReasonLabel(lang)),
                   const SizedBox(height: 16),
                   ContactCard(
                     order: _order,
@@ -331,40 +342,14 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     );
   }
 
-  Future<void> _showCancelDialog(BuildContext context) async {
+  void _showCancelDialog(BuildContext context) {
     final lang = S.of(context);
     final theme = Theme.of(context);
 
-    // Only an accepted order already has a worker on the way, so the
-    // worker-delay question is meaningless while the request is pending.
-    String? reason;
-    if (_order.status == OrderStatus.accepted) {
-      final choice = await showDialog<String>(
-        context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(lang.cancelRequest),
-          content: Text(lang.workerDelayQuestion),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, _reasonOther),
-              child: Text(lang.otherReason),
-            ),
-            TextButton(
-              onPressed: () =>
-                  Navigator.pop(dialogContext, _reasonWorkerDelay),
-              child: Text(lang.workerWasLate),
-            ),
-          ],
-        ),
-      );
-      // Dismissed (barrier tap / back) — don't fall through to the
-      // confirmation dialog.
-      if (choice == null) return;
-      reason = choice;
-    }
-
-    if (!context.mounted) return;
-
+    // No reason is collected here on purpose: the backend derives it from
+    // *when* the cancel became possible (before any accept = client cancel,
+    // after the 1-hour window = worker delay), so asking would only gather
+    // an answer it deliberately ignores.
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
@@ -378,9 +363,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context
-                  .read<CustomerOrdersCubit>()
-                  .cancelOrder(_order.id, reason: reason);
+              context.read<CustomerOrdersCubit>().cancelOrder(_order.id);
               Navigator.pop(context);
             },
             child: Text(lang.yes, style: TextStyle(color: theme.colorScheme.error)),

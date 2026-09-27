@@ -280,6 +280,12 @@ class AdminOrderStatusView(APIView):
                     profile.save(update_fields=["completed_jobs"])
         elif new_status == Order.CANCELLED and not order.cancelled_at:
             order.cancelled_at = now
+            # Never leave a cancelled order without a reason — the admin UI
+            # shows "—" for null, which reads as "unknown" next to the two
+            # real buckets. An admin override carries no evidence the worker
+            # was late, so it lands on OTHER rather than WORKER_DELAY.
+            if not order.cancellation_reason:
+                order.cancellation_reason = Order.CANCELLATION_OTHER
         order.save()
         _bust_dashboard_cache()
 
@@ -348,6 +354,18 @@ class AdminOrderListView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
             queryset = queryset.filter(status=status_filter)
+
+        # Lets the Orders page isolate worker-delay cancellations — the
+        # list a manager actually reviews when holding a worker to account.
+        reason_filter = (request.query_params.get("cancellation_reason") or "").upper()
+        if reason_filter:
+            valid_reasons = [c[0] for c in Order.CANCELLATION_REASON_CHOICES]
+            if reason_filter not in valid_reasons:
+                return Response(
+                    {"error": f"Invalid cancellation_reason. Must be one of: {', '.join(valid_reasons)}"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            queryset = queryset.filter(cancellation_reason=reason_filter)
 
         return Response(_paged_orders(request, queryset))
 

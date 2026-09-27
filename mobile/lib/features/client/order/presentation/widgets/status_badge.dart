@@ -6,7 +6,20 @@ class StatusBadge extends StatelessWidget {
   final OrderStatus status;
   final bool isCustomer;
 
-  const StatusBadge({super.key, required this.status, this.isCustomer = true});
+  /// See [OrderModel.cancellationReason]; ignored unless [status] is
+  /// [OrderStatus.cancelled].
+  final String? cancellationReason;
+
+  const StatusBadge({
+    super.key,
+    required this.status,
+    this.isCustomer = true,
+    this.cancellationReason,
+  });
+
+  bool get _cancelledForWorkerDelay =>
+      status == OrderStatus.cancelled &&
+      cancellationReason == kCancellationReasonWorkerDelay;
 
   Color _color() {
     switch (status) {
@@ -23,7 +36,10 @@ class StatusBadge extends StatelessWidget {
       case OrderStatus.rejected:
         return Colors.red;
       case OrderStatus.cancelled:
-        return Colors.grey;
+        // A cancellation charged to the worker is a different event than
+        // one the client walked away from — it must not wear the same
+        // grey, or there is nothing to hold the worker to account for.
+        return _cancelledForWorkerDelay ? Colors.red : Colors.grey;
     }
   }
 
@@ -42,7 +58,8 @@ class StatusBadge extends StatelessWidget {
       case OrderStatus.rejected:
         return isCustomer ? lang.rejectedByWorker : lang.rejected;
       case OrderStatus.cancelled:
-        return isCustomer ? lang.cancelledByYou : lang.rejected;
+        if (_cancelledForWorkerDelay) return lang.cancelledWorkerLate;
+        return isCustomer ? lang.cancelledByYou : lang.cancelledByCustomer;
     }
   }
 

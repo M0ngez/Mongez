@@ -207,6 +207,8 @@
   "workerMarkedFinished": "The worker marked this job as finished",
   "cancelledByYou": "Cancelled by you",
   "cancelledByCustomer": "Cancelled by the customer",
+  "cancelledWorkerLate": "Cancelled — worker was late",
+  "cancelledYouWereLate": "Cancelled — you were late",
   "rejectedByWorker": "Rejected by the worker",
   "rejectedByYou": "Rejected by you",
   "notifications": "Notifications",

@@ -1,21 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { adminAPI } from '../../services/api';
-
-const statusColors = {
-  PENDING: { bg: '#f59e0b20', color: '#f59e0b' },
-  ACCEPTED: { bg: '#3b82f620', color: '#3b82f6' },
-  IN_PROGRESS: { bg: '#8b5cf620', color: '#8b5cf6' },
-  WAITING_CONFIRMATION: { bg: '#f9731620', color: '#f97316' },
-  REJECTED: { bg: '#ef444420', color: '#ef4444' },
-  CANCELLED: { bg: '#6b728020', color: '#6b7280' },
-  COMPLETED: { bg: '#10b98120', color: '#10b981' },
-};
-
-const reasonLabels = {
-  WORKER_DELAY: { label: 'Worker delay', color: '#ef4444', bg: '#ef444420', icon: 'bi-clock-history' },
-  OTHER: { label: 'Other', color: '#6b7280', bg: '#6b728020', icon: 'bi-question-circle' },
-};
+import { statusStyle, reasonStyle } from '../../utils/orderStatus';
 
 const roleColors = {
   admin: { bg: '#ef444420', color: '#ef4444' },
@@ -199,8 +185,8 @@ const UserProfile = () => {
                 {ordersList.length === 0 ? (
                   <tr><td colSpan="6" className="text-center py-4 text-muted">No orders for this user.</td></tr>
                 ) : ordersList.map((o) => {
-                  const sc = statusColors[o.status] || statusColors.PENDING;
-                  const reason = reasonLabels[o.cancellation_reason];
+                  const sc = statusStyle(o.status, o.cancellation_reason);
+                  const reason = reasonStyle(o.cancellation_reason);
                   return (
                     <tr key={o.id}>
                       <td style={{ fontWeight: '500' }}>#{o.id}</td>
@@ -211,15 +197,22 @@ const UserProfile = () => {
                         {o.worker?.display_name || o.worker?.username || '—'}
                       </td>
                       <td>
-                        <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: sc.bg, color: sc.color, fontSize: '12px' }}>{o.status}</span>
+                        <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: sc.bg, color: sc.color, fontSize: '12px' }}>{sc.label}</span>
                       </td>
                       <td style={{ color: '#64748b', fontSize: '13px' }}>{new Date(o.created_at).toLocaleDateString()}</td>
                       <td>
-                        {o.cancellation_reason ? (
-                          <span className="badge rounded-pill px-3 py-1" style={{ backgroundColor: reason?.bg || '#6b728020', color: reason?.color || '#6b7280', fontSize: '12px' }}>
-                            <i className={`bi ${reason?.icon || 'bi-question-circle'} me-1`}></i>
-                            {reason?.label || o.cancellation_reason}
-                          </span>
+                        {reason ? (
+                          <div className="d-flex flex-column gap-1">
+                            <span className="badge rounded-pill px-3 py-1 align-self-start" style={{ backgroundColor: reason.bg, color: reason.color, fontSize: '12px' }}>
+                              <i className={`bi ${reason.icon} me-1`}></i>
+                              {reason.label}
+                            </span>
+                            {o.cancelled_at && (
+                              <span className="text-muted" style={{ fontSize: '11px' }}>
+                                {new Date(o.cancelled_at).toLocaleDateString()}
+                              </span>
+                            )}
+                          </div>
                         ) : (
                           <span className="text-muted" style={{ fontSize: '12px' }}>—</span>
                         )}

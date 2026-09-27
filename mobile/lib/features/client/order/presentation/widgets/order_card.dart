@@ -50,7 +50,11 @@ class OrderCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                StatusBadge(status: order.status, isCustomer: isCustomer),
+                StatusBadge(
+                  status: order.status,
+                  isCustomer: isCustomer,
+                  cancellationReason: order.cancellationReason,
+                ),
               ],
             ),
             const SizedBox(height: 8),

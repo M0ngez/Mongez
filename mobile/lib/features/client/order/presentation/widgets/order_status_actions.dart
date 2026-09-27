@@ -94,11 +94,7 @@ class OrderStatusActions extends StatelessWidget {
         );
       }
       if (order.status == OrderStatus.cancelled) {
-        return _banner(
-          color: Colors.grey,
-          icon: Icons.cancel,
-          text: lang.cancelledByYou,
-        );
+        return _cancelledBanner(lang);
       }
     } else {
       if (order.status == OrderStatus.pending) {
@@ -168,9 +164,47 @@ class OrderStatusActions extends StatelessWidget {
           text: lang.waitingConfirmation,
         );
       }
+      if (order.status == OrderStatus.cancelled) {
+        return _cancelledBanner(lang);
+      }
+      if (order.status == OrderStatus.rejected) {
+        return _banner(
+          color: Colors.red,
+          icon: Icons.cancel,
+          text: lang.rejectedByYou,
+        );
+      }
+      if (order.status == OrderStatus.completed) {
+        return _banner(
+          color: Colors.green,
+          icon: Icons.check_circle,
+          text: lang.completed,
+        );
+      }
     }
 
     return const SizedBox();
+  }
+
+  /// A cancelled order reads differently depending on *why* it was
+  /// cancelled: grey when the client backed out before anyone took the
+  /// job, red when the cancellation was charged to this worker for being
+  /// late. The role decides who the red text is addressed to.
+  Widget _cancelledBanner(S lang) {
+    final chargedToWorker =
+        order.cancellationReason == kCancellationReasonWorkerDelay;
+    if (chargedToWorker) {
+      return _banner(
+        color: Colors.red,
+        icon: Icons.warning_amber_rounded,
+        text: isCustomer ? lang.cancelledWorkerLate : lang.cancelledYouWereLate,
+      );
+    }
+    return _banner(
+      color: Colors.grey,
+      icon: Icons.cancel,
+      text: isCustomer ? lang.cancelledByYou : lang.cancelledByCustomer,
+    );
   }
 
   Widget _banner({

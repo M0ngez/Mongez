@@ -531,11 +531,25 @@ class OrderCancelView(APIView):
       - ACCEPTED   → allowed only AFTER 1 hour of worker acceptance
       - otherwise  → blocked
 
-    Optional `reason` body field records *why* the order was cancelled
-    (e.g. WORKER_DELAY). We never assume a reason the client didn't
-    state. When the client explicitly cancels an accepted order because
-    of a worker delay, every admin gets an in-app notification naming
-    the order and the worker so they can follow up.
+    The *reason* is derived from the order's status at cancellation time
+    rather than taken from the request, so the two situations the rules
+    above distinguish are recorded the same way the rules distinguish
+    them:
+
+      - PENDING   → OTHER       the client backed out before any worker
+                                was even on the job. Not the worker's
+                                fault, nothing to hold them to.
+      - ACCEPTED  → WORKER_DELAY reaching this branch is only possible
+                                once the 1-hour window has elapsed, i.e.
+                                the worker accepted and then never showed
+                                up on time.
+
+    An optional `reason` body field is still *validated* (older app
+    builds send it and an invalid value is still a 400), but it never
+    overrides the timing-derived classification — accountability must not
+    depend on the cancelling client remembering to state it. Every
+    WORKER_DELAY cancellation notifies all admins with the order and the
+    worker named so they can follow up.
     """
 
     permission_classes = [IsAuthenticated, IsProfileCompleted]
@@ -567,14 +581,24 @@ class OrderCancelView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        reason = request.data.get("reason") or None
-        if reason is not None and reason not in dict(Order.CANCELLATION_REASON_CHOICES):
+        previous_status = order.status
+
+        # Validate the optional legacy `reason` — an unknown value is still
+        # a client bug worth a 400 — but it is deliberately not used below.
+        supplied_reason = request.data.get("reason") or None
+        if supplied_reason is not None and supplied_reason not in dict(Order.CANCELLATION_REASON_CHOICES):
             return Response(
                 {"error": f"Invalid reason. Must be one of: {', '.join(dict(Order.CANCELLATION_REASON_CHOICES))}"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        previous_status = order.status
+        # Classification comes from when the cancel was possible, not from
+        # what the client said (see the class docstring).
+        if previous_status == Order.ACCEPTED:
+            reason = Order.WORKER_DELAY
+        else:
+            reason = Order.CANCELLATION_OTHER
+
         # Update order
         order.status = Order.CANCELLED
         order.cancelled_at = now()
@@ -606,14 +630,13 @@ class OrderCancelView(APIView):
                 translation_params={"order_id": order.id},
             )
 
-        # A client explicitly cancelled an accepted job because the worker
-        # was delayed → surface it to every admin so they can follow up.
-        # We only fire this on the stated reason; an unspecified or
-        # client-caused cancellation never triggers it.
-        if (
-            previous_status == Order.ACCEPTED
-            and reason == Order.WORKER_DELAY
-        ):
+        # An accepted job was cancelled after the 1-hour window → the
+        # worker was late and the cancellation is charged to them. Surface
+        # it to every admin so they can follow up. Reaching this branch at
+        # all means `reason` is WORKER_DELAY (see above), so testing the
+        # status is enough — and it now fires for every late cancellation,
+        # not only for the ones a client thought to state.
+        if previous_status == Order.ACCEPTED:
             worker_label = (
                 order.worker.name_ar
                 or order.worker.username

@@ -191,6 +191,43 @@ class AdminApiAccessControlTests(TestCase):
         r = self.api.get(reverse("admin-order-list"))
         self.assertEqual(r.status_code, 403)
 
+    def test_admin_orders_list_filters_by_cancellation_reason(self):
+        """The Orders page needs to isolate worker-delay cancellations —
+        that is the list a manager reviews when holding a worker to
+        account. An unknown reason is a 400, like the status filter."""
+        from apps.workers.models import ServiceCategory
+        cat = ServiceCategory.objects.create(name="Delay filter test")
+        late = Order.objects.create(
+            client=self.client_user, service_category=cat,
+            status=Order.CANCELLED, cancellation_reason=Order.WORKER_DELAY,
+        )
+        Order.objects.create(
+            client=self.client_user, service_category=cat,
+            status=Order.CANCELLED, cancellation_reason=Order.CANCELLATION_OTHER,
+        )
+        Order.objects.create(
+            client=self.client_user, service_category=cat, status=Order.PENDING,
+        )
+
+        self._auth_as(self.admin)
+
+        r = self.api.get(
+            reverse("admin-order-list"),
+            {"cancellation_reason": "WORKER_DELAY"},
+        )
+        self.assertEqual(r.status_code, 200, r.content)
+        body = r.json()
+        self.assertEqual(body["count"], 1)
+        self.assertEqual(body["results"][0]["id"], late.id)
+        self.assertEqual(body["results"][0]["cancellation_reason"], Order.WORKER_DELAY)
+
+        r = self.api.get(
+            reverse("admin-order-list"),
+            {"cancellation_reason": "MAYBE_DELAY"},
+        )
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("cancellation_reason", r.json()["error"])
+
 
 class AdminOrderStatusFanoutTests(TestCase):
     """The dashboard's admin status change is the load-bearing mutation
@@ -269,6 +306,36 @@ class AdminOrderStatusFanoutTests(TestCase):
         r = self.api.patch(url, {"status": "PENDING"}, format="json")
         self.assertEqual(r.status_code, 200, r.content)
         self.assertEqual(self.Notification.objects.count(), 0)
+
+    def test_admin_cancel_records_a_reason(self):
+        """An admin-forced cancel must never leave a blank reason — the UI
+        renders null as "—", which is exactly the ambiguity this flow
+        exists to remove. An admin override carries no evidence the worker
+        was late, so it lands on OTHER rather than WORKER_DELAY."""
+        self._login_admin()
+        url = reverse("admin-order-status", kwargs={"pk": self.order.id})
+
+        r = self.api.patch(url, {"status": "CANCELLED"}, format="json")
+        self.assertEqual(r.status_code, 200, r.content)
+
+        self.order.refresh_from_db()
+        self.assertIsNotNone(self.order.cancelled_at)
+        self.assertEqual(self.order.cancellation_reason, Order.CANCELLATION_OTHER)
+
+    def test_admin_cancel_does_not_overwrite_a_stated_reason(self):
+        """Re-stamping the reason is guarded so a later status flip can't
+        silently rewrite why an order was cancelled."""
+        self._login_admin()
+        url = reverse("admin-order-status", kwargs={"pk": self.order.id})
+        Order.objects.filter(pk=self.order.pk).update(
+            cancellation_reason=Order.WORKER_DELAY,
+        )
+
+        r = self.api.patch(url, {"status": "CANCELLED"}, format="json")
+        self.assertEqual(r.status_code, 200, r.content)
+
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.cancellation_reason, Order.WORKER_DELAY)
 
 
 class AdminProfileEndpointTests(TestCase):
@@ -392,6 +459,14 @@ class AdminProfileEndpointTests(TestCase):
         self.assertEqual(body["summary"]["total_orders"], 3)
         self.assertEqual(body["summary"]["cancelled_orders"], 2)
         self.assertEqual(body["summary"]["cancelled_due_to_worker_delay"], 1)
+        # The split always adds back up to cancelled_orders, so the cards
+        # can show "N by client · M worker delay" without a gap.
+        self.assertEqual(body["summary"]["cancelled_by_client"], 1)
+        self.assertEqual(
+            body["summary"]["cancelled_by_client"]
+            + body["summary"]["cancelled_due_to_worker_delay"],
+            body["summary"]["cancelled_orders"],
+        )
 
     def test_user_profile_returns_behavior_and_orders(self):
         self._login_admin()
@@ -410,5 +485,6 @@ class AdminProfileEndpointTests(TestCase):
         # One of those two cancellations was the worker's delay — not a
         # client behavior signal.
         self.assertEqual(behavior["cancelled_due_to_worker_delay"], 1)
+        self.assertEqual(behavior["cancelled_by_client"], 1)
         self.assertEqual(behavior["recent_cancellations_30d"], 2)
         self.assertIsInstance(behavior["cancellation_rate"], float)

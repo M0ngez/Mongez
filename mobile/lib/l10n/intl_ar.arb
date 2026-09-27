@@ -207,6 +207,8 @@
   "workerMarkedFinished": "قام الفني بوضع علامة أن العمل قد انتهى",
   "cancelledByYou": "تم الإلغاء بواسطتك",
   "cancelledByCustomer": "تم الإلغاء بواسطة العميل",
+  "cancelledWorkerLate": "تم الإلغاء — تأخر الفني",
+  "cancelledYouWereLate": "تم الإلغاء — تأخرت",
   "rejectedByWorker": "مرفوض من الفني",
   "rejectedByYou": "تم الرفض بواسطتك",
   "notifications": "الإشعارات",

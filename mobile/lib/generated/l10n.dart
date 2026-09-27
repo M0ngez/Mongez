@@ -852,7 +852,12 @@ class S {
 
   /// `Another reason`
   String get otherReason {
-    return Intl.message('Another reason', name: 'otherReason', desc: '', args: []);
+    return Intl.message(
+      'Another reason',
+      name: 'otherReason',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Fixing power outage in living room`
@@ -1585,6 +1590,26 @@ class S {
     return Intl.message(
       'Cancelled by the customer',
       name: 'cancelledByCustomer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled — worker was late`
+  String get cancelledWorkerLate {
+    return Intl.message(
+      'Cancelled — worker was late',
+      name: 'cancelledWorkerLate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancelled — you were late`
+  String get cancelledYouWereLate {
+    return Intl.message(
+      'Cancelled — you were late',
+      name: 'cancelledYouWereLate',
       desc: '',
       args: [],
     );

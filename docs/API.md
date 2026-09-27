@@ -167,7 +167,7 @@ or
 | GET | `/api/orders/<id>/` | Yes | Get order details |
 | POST | `/api/orders/<id>/accept/` | Yes, worker | Accept pending order |
 | POST | `/api/orders/<id>/reject/` | Yes, worker | Reject pending order |
-| POST | `/api/orders/<id>/cancel/` | Yes, client | Cancel pending order |
+| POST | `/api/orders/<id>/cancel/` | Yes, client | Cancel own order — always while `PENDING`, or `ACCEPTED` after 1 h. Sets `cancellation_reason` from that timing (`OTHER` / `WORKER_DELAY`) |
 | POST | `/api/orders/<id>/complete/` | Yes, worker | Worker marks job finished → moves to `WAITING_CONFIRMATION` |
 | POST | `/api/orders/<id>/confirm-completion/` | Yes, client | Client confirms job done → `COMPLETED`, bumps worker `completed_jobs` |
 

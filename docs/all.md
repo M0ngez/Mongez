@@ -294,14 +294,18 @@ Views (all under `IsAuthenticated`, with role checks inside):
 | `POST /api/orders/<id>/attachments/` | Add more files after creation |
 | `POST /api/orders/<id>/accept/` | Worker accepts → captures commission, sets commission amount, notifies client |
 | `POST /api/orders/<id>/reject/` | Worker rejects → voids commission, notifies client |
-| `POST /api/orders/<id>/cancel/` | Client cancels (only while PENDING) → voids commission, notifies worker |
+| `POST /api/orders/<id>/cancel/` | Client cancels → voids commission, notifies worker. `cancellation_reason` is derived from timing: `PENDING` → `OTHER`, `ACCEPTED` (only reachable after 1 h) → `WORKER_DELAY`, which also notifies every admin |
 | `POST /api/orders/<id>/complete/` | Worker marks finished → moves to `WAITING_CONFIRMATION`, pings client |
 | `POST /api/orders/<id>/confirm-completion/` | Client confirms done → `COMPLETED`, bumps `completed_jobs`, prompts to rate |
 
 Important rules (enforced in views):
 
 - A worker can only complete an order **they were assigned to**.
-- A client can only cancel **their own** order and only while `PENDING`.
+- A client can only cancel **their own** order — always while `PENDING`,
+  or once `ACCEPTED` and the 1-hour window has elapsed. Which of those two
+  applied is what `cancellation_reason` records (`OTHER` vs
+  `WORKER_DELAY`); it is computed server-side and the request body's
+  `reason` never overrides it.
 - Status transitions are guarded — you cannot accept an `ACCEPTED` order,
   cancel a `COMPLETED` one, etc.
 
