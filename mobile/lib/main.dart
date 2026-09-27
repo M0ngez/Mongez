@@ -31,7 +31,7 @@ void main() async {
       developer.log('Uncaught error: $error', name: 'Mongez');
       if (!kIsWeb) {
         try {
-          FirebaseCrashlytics.instance.recordFlutterFatalError;
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
         } catch (_) {}
       }
     },
