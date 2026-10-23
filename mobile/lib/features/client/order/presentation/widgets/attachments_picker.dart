@@ -158,7 +158,12 @@ class _AttachmentsPickerState extends State<AttachmentsPicker> {
       'gallery',
       title: S.of(context).galleryPermissionTitle,
       body: S.of(context).galleryPermissionBody,
-      permissions: const [Permission.photos, Permission.storage],
+      // Android Photo Picker (image_picker) needs no storage permission, so
+      // there is nothing to check before asking the OS. Passing an empty list
+      // keeps the rationale dialog behaviour identical while avoiding any
+      // reference to READ_MEDIA_*/READ_EXTERNAL_STORAGE, which the app no
+      // longer declares (Google Play photo/video permissions policy).
+      permissions: const [],
     );
     if (!proceed || !mounted) return;
     try {

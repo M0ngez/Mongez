@@ -2,8 +2,11 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- No READ_MEDIA_IMAGES / READ_MEDIA_VIDEO / READ_EXTERNAL_STORAGE here on
+         purpose: gallery selection goes through image_picker's Android Photo
+         Picker (ACTION_GET_CONTENT / PickVisualMedia), which needs no storage
+         permission. Declaring them triggers Google Play's photo/video
+         permissions policy warning. Do not re-add without a proven need. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <application
         android:label="Mongez"
