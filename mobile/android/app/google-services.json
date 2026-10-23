@@ -14,6 +14,30 @@
       },
       "oauth_client": [
         {
+          "client_id": "945925867568-0mn9kjnc9inf60tg8p7fj5djofl2v5be.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mongez.app",
+            "certificate_hash": "18ccbf1e43be5842c1e824799c430ab5a95035ee"
+          }
+        },
+        {
+          "client_id": "945925867568-gmeq8soo6dcguqpskkj4cbla9bttenlm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mongez.app",
+            "certificate_hash": "465e5b88c6119f7d322ae3421fd9b2f894787867"
+          }
+        },
+        {
+          "client_id": "945925867568-riuov92oo3i8l6i0k8cjen3lhbmhnj3m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mongez.app",
+            "certificate_hash": "cd08f090d4e2c15a67effab574ac34da659b9e71"
+          }
+        },
+        {
           "client_id": "945925867568-hkrej6riemi1arcahijktfi47vchbieb.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -25,7 +49,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "945925867568-hkrej6riemi1arcahijktfi47vchbieb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "945925867568-grv09e5m7gl9kdi4aia193rtvduo2jnu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.mongez"
+              }
+            }
+          ]
         }
       }
     }
